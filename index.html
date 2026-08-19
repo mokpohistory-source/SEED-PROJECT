@@ -27,10 +27,12 @@
     }
   </script>
 
-  <!-- Google Fonts & Custom CSS -->
-  <link rel="stylesheet" href="css/style.css" />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Lucide Icons -->
+  <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <!-- Chart.js CDN -->
@@ -38,6 +40,205 @@
 
   <!-- Canvas-Confetti CDN -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    /* SEED 워크북 & 관리자 시스템 스타일 */
+    :root {
+      --seed-primary: #10b981;
+      --seed-primary-dark: #059669;
+      --seed-accent: #3b82f6;
+      --seed-amber: #f59e0b;
+      --seed-purple: #8b5cf6;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+      letter-spacing: -0.015em;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .glass-nav {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    @keyframes pulse-growth {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.4)); }
+      100% { transform: scale(1); }
+    }
+
+    .growth-stage-anim {
+      animation: pulse-growth 2.5s infinite ease-in-out;
+    }
+
+    @keyframes float-slow {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .float-animation {
+      animation: float-slow 3s ease-in-out infinite;
+    }
+
+    .sticky-note {
+      position: relative;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+    }
+
+    .sticky-note::before {
+      content: '';
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 16px;
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(2px);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .sticky-note:hover {
+      transform: translateY(-4px) rotate(1deg);
+      box-shadow: 0 12px 20px -4px rgba(0, 0, 0, 0.12);
+      z-index: 10;
+    }
+
+    .selectable-card {
+      transition: all 0.22s ease-in-out;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .selectable-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.08);
+    }
+
+    .selectable-card.selected {
+      border-color: #10b981;
+      background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+      box-shadow: 0 0 0 2px #10b981, 0 10px 15px -3px rgba(16, 185, 129, 0.2);
+    }
+
+    input[type="range"].custom-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 8px;
+      border-radius: 9999px;
+      background: #e2e8f0;
+      outline: none;
+    }
+
+    input[type="range"].custom-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #10b981;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+      border: 2px solid white;
+      transition: transform 0.1s ease;
+    }
+
+    input[type="range"].custom-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .word-tag {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 9999px;
+      transition: all 0.2s ease;
+    }
+    .word-tag:hover {
+      transform: scale(1.08);
+    }
+
+    .tab-active {
+      color: #10b981 !important;
+      border-bottom: 2.5px solid #10b981 !important;
+      font-weight: 700 !important;
+    }
+
+    @keyframes slide-in-bottom {
+      from {
+        transform: translateY(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .toast-animate {
+      animation: slide-in-bottom 0.3s ease forwards;
+    }
+
+    .stage-transition {
+      animation: fadeIn 0.35s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media print {
+      body {
+        background: white !important;
+        color: black !important;
+        padding: 0 !important;
+      }
+
+      .no-print,
+      nav,
+      header,
+      footer,
+      #roleSwitcher,
+      #toastContainer,
+      button:not(.print-keep),
+      .modal-overlay {
+        display: none !important;
+      }
+
+      .print-page {
+        display: block !important;
+        page-break-after: always;
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+        background: white !important;
+        margin: 0 !important;
+        padding: 20mm !important;
+      }
+
+      .glass-card {
+        border: 1px solid #ccc !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        background: white !important;
+      }
+    }
+  </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-emerald-500 selection:text-white">
 
@@ -144,13 +345,2878 @@
   <!-- 모달 루트 컨테이너 -->
   <div id="modalRoot"></div>
 
-  <!-- 스크립트 로드 순서: data -> store -> components -> app -->
-  <script src="js/data.js"></script>
-  <script src="js/store.js"></script>
-  <script src="js/workbook.js"></script>
-  <script src="js/gallery.js"></script>
-  <script src="js/admin.js"></script>
-  <script src="js/app.js"></script>
+  <!-- 인라인 스크립트: 깃허브 단일 파일 업로드 및 배포 지원 -->
+  <script>
+/**
+ * SEED 프로그램 워크북 문항 데이터 및 초기 샘플 데이터 정의
+ */
+const SEED_CONFIG = {
+  programName: "SEED 역량 강화 프로그램",
+  subTitle: "스스로 탐색하고 성장하는 나만의 디지털 워크북",
+  organization: "교수학습지원센터 (CTL)",
+  stages: [
+    {
+      id: 1,
+      code: "S",
+      title: "1차시: Self-Discovery (자기발견)",
+      subTitle: "나만의 씨앗 찾기 - 가치관과 강점 탐색",
+      icon: "sprout",
+      color: "emerald",
+      badgeText: "🌱 씨앗 심기",
+      sections: [
+        {
+          id: "s1_motto",
+          title: "1. 나의 성장 한 줄 슬로건",
+          desc: "이번 SEED 프로그램을 시작하며 나를 가장 잘 나타내는 한 줄 다짐이나 좌우명을 적어보세요.",
+          type: "text",
+          placeholder: "예: 어제보다 1% 더 성장하는 꾸준함의 힘을 믿자!",
+          default: ""
+        },
+        {
+          id: "s1_values",
+          title: "2. 내가 가장 중요하게 생각하는 핵심 가치 (TOP 3)",
+          desc: "아래 가치관 카드 덱에서 내가 삶과 학습에서 가장 중요시하는 가치 3가지를 선택해보세요.",
+          type: "card-select",
+          maxSelect: 3,
+          options: [
+            { id: "v_growth", label: "지속적 성장", icon: "trending-up", color: "blue" },
+            { id: "v_passion", label: "열정과 몰입", icon: "flame", color: "red" },
+            { id: "v_creativity", label: "창의와 혁신", icon: "lightbulb", color: "yellow" },
+            { id: "v_cooperation", label: "협력과 배려", icon: "users", color: "green" },
+            { id: "v_sincerity", label: "성실과 책임", icon: "shield-check", color: "indigo" },
+            { id: "v_challenge", label: "도전과 용기", icon: "zap", color: "amber" },
+            { id: "v_autonomy", label: "자율과 독립", icon: "compass", color: "purple" },
+            { id: "v_positivity", label: "긍정과 유연성", icon: "smile", color: "emerald" },
+            { id: "v_empathy", label: "공감과 소통", icon: "heart", color: "pink" },
+            { id: "v_resilience", label: "회복탄력성", icon: "refresh-cw", color: "cyan" }
+          ],
+          default: []
+        },
+        {
+          id: "s1_radar",
+          title: "3. 나의 현재 역량 진단 (5대 핵심 역량)",
+          desc: "각 역량별 슬라이더를 움직여 현재 나의 준비도(1~10점)를 진단해보세요. 레이더 차트로 시각화됩니다.",
+          type: "radar-slider",
+          metrics: [
+            { key: "selfAwareness", label: "자기이해/메타인지", min: 1, max: 10, default: 7 },
+            { key: "challenge", label: "도전과 주도성", min: 1, max: 10, default: 6 },
+            { key: "problemSolving", label: "문제해결력", min: 1, max: 10, default: 8 },
+            { key: "communication", label: "소통과 협업", min: 1, max: 10, default: 7 },
+            { key: "execution", label: "실행력/끈기", min: 1, max: 10, default: 6 }
+          ]
+        },
+        {
+          id: "s1_reflection",
+          title: "4. 나의 강점과 보완점 심층 성찰",
+          desc: "선택한 핵심 가치와 역량 진단 결과를 바탕으로, 나의 독보적인 무기(강점)와 이번 프로그램에서 보완하고 싶은 점을 작성해주세요.",
+          type: "textarea",
+          placeholder: "나의 강점은 꾸준히 기록하고 체계적으로 계획을 세우는 것입니다. 반면 실패에 대한 두려움 때문에 새로운 도전을 망설이는 경향이 있어, 이번 SEED를 통해 작은 실험과 도전을 빠르게 시도하는 실행력을 기르고 싶습니다.",
+          default: ""
+        }
+      ]
+    },
+    {
+      id: 2,
+      code: "E",
+      title: "2차시: Exploration & Empathy (탐색과 공감)",
+      subTitle: "싹 틔우기 - 진로/학습 탐색 및 비전 캔버스",
+      icon: "compass",
+      color: "blue",
+      badgeText: "🌿 새싹 틔우기",
+      sections: [
+        {
+          id: "s2_interest",
+          title: "1. 내가 깊이 몰입하고 탐색하고 싶은 주제/분야",
+          desc: "전공, 진로, 관심 프로젝트, 일상에서 해결해보고 싶은 관심 분야를 자유롭게 적어보세요.",
+          type: "text",
+          placeholder: "예: 생성형 AI를 활용한 교육 콘텐츠 기획 및 인터랙티브 웹 개발",
+          default: ""
+        },
+        {
+          id: "s2_vision_board",
+          title: "2. 인터랙티브 비전 캔버스 (아이디어 & 키워드 보드)",
+          desc: "내 꿈과 목표를 시각화해보세요! 색상별 포스트잇을 추가하고 스티커를 붙여 나만의 비전보드를 완성합니다.",
+          type: "sticky-canvas",
+          defaultSticky: [
+            { text: "매일 30분 전공 서적 및 논문 리딩", color: "yellow", tag: "학습" },
+            { text: "포트폴리오 프로젝트 1건 완결", color: "emerald", tag: "목표" },
+            { text: "SEED 동료들과 주 1회 스터디 피드백", color: "blue", tag: "협업" }
+          ]
+        },
+        {
+          id: "s2_role_model",
+          title: "3. 나의 롤모델 & 벤치마킹 포인트",
+          desc: "내가 닮고 싶거나 긍정적인 자극을 주는 인물(또는 선배/멘토)의 핵심 태도와 배울 점을 기록해보세요.",
+          type: "textarea",
+          placeholder: "예: 기술을 통해 사회적 가치를 창출하는 오픈소스 개발자. 복잡한 문제를 끝까지 파고드는 집요함과 이를 타인에게 명쾌하게 전달하는 스토리텔링 능력을 벤치마킹하고 싶습니다.",
+          default: ""
+        }
+      ]
+    },
+    {
+      id: 3,
+      code: "E",
+      title: "3차시: Experience & Action (실행과 도전)",
+      subTitle: "가지 뻗기 - SMART 목표 설정 및 액션 로드맵",
+      icon: "target",
+      color: "amber",
+      badgeText: "🌸 가지와 꽃",
+      sections: [
+        {
+          id: "s3_smart_goal",
+          title: "1. 3단계 SMART 목표 설계기",
+          desc: "구체적(Specific), 측정가능(Measurable), 달성가능(Achievable), 관련성(Relevant), 시한(Time-bound)을 갖춘 실천 목표를 수립합니다.",
+          type: "smart-grid",
+          fields: [
+            { key: "specific", label: "S (구체적 목표)", placeholder: "무엇을 누구와 어디서 달성할 것인가?" },
+            { key: "measurable", label: "M (측정 기준)", placeholder: "달성 여부를 어떻게 숫자로 측정할 것인가? (예: 주 3회, 100% 완료)" },
+            { key: "actionStep", label: "A (실천 행동)", placeholder: "매일/매주 즉시 실행할 첫 번째 구체적 행동은?" },
+            { key: "timeline", label: "T (마감 기한)", placeholder: "언제까지 달성할 것인가? (예: 2026년 10월 말까지)" }
+          ]
+        },
+        {
+          id: "s3_action_roadmap",
+          title: "2. 주차별 액션 로드맵 (Action Timeline)",
+          desc: "목표 달성을 위한 4단계 마일스톤과 실천 액션을 설계하세요. 실천 완료 시 체크할 수 있습니다.",
+          type: "roadmap-builder",
+          defaultRoadmap: [
+            { step: 1, title: "1단계: 기초 자료 조사 및 기획안 초안", period: "1~2주차", done: true },
+            { step: 2, title: "2단계: 핵심 기능/내용 프로토타입 구현", period: "3~4주차", done: false },
+            { step: 3, title: "3단계: 피드백 수렴 및 개선 보완", period: "5~6주차", done: false },
+            { step: 4, title: "4단계: 최종 성과 공유 및 포트폴리오화", period: "7~8주차", done: false }
+          ]
+        },
+        {
+          id: "s3_obstacle_plan",
+          title: "3. 예상 장애물(If)과 극복 전략(Then)",
+          desc: "목표를 실행하는 과정에서 겪을 수 있는 유혹이나 장애물, 그리고 이를 돌파할 If-Then 실행 규칙을 세워보세요.",
+          type: "textarea",
+          placeholder: "예:\n- [If] 만약 과제 마감이나 시험으로 시간이 부족해지면,\n- [Then] 분량을 쪼개어 매일 아침 기상 직후 20분만 우선적으로 투자한다.\n- [If] 의지력이 떨어져 게을러질 때는,\n- [Then] SEED 스터디 단톡방에 진행 상황을 바로 인증한다.",
+          default: ""
+        }
+      ]
+    },
+    {
+      id: 4,
+      code: "D",
+      title: "4차시: Development & Dedication (성장과 나눔)",
+      subTitle: "열매 맺기 - 종합 회고 및 SEED 성장 서약",
+      icon: "award",
+      color: "purple",
+      badgeText: "🍎 풍성한 열매",
+      sections: [
+        {
+          id: "s4_kpt_review",
+          title: "1. KPT 성장 성찰 매트릭스",
+          desc: "SEED 활동을 통해 발견한 지속할 점(Keep), 아쉬운 점(Problem), 새롭게 시도할 점(Try)을 정리해보세요.",
+          type: "kpt-grid",
+          defaultKpt: {
+            keep: "꾸준한 데일리 기록 습관과 긍정적인 학습 태도",
+            problem: "계획을 너무 빡빡하게 잡아 생기는 일정 지연",
+            try: "여유 버퍼 시간을 확보하고 핵심 우선순위 3개에 집중하기"
+          }
+        },
+        {
+          id: "s4_peer_message",
+          title: "2. 동료와 나에게 전하는 응원의 메시지",
+          desc: "함께 성장한 동료 학우들과 포기하지 않고 달려온 나 자신에게 전하고 싶은 따뜻한 한마디를 적어주세요.",
+          type: "textarea",
+          placeholder: "서로 다른 목표를 향해 달렸지만 서로의 워크북을 보며 정말 큰 동기부여를 받았습니다. 각자의 자리에서 멋지게 꽃피울 우리 모두를 진심으로 응원합니다!",
+          default: ""
+        },
+        {
+          id: "s4_pledge",
+          title: "3. 나의 SEED 성장 서약서",
+          desc: "프로그램 이후에도 이어갈 나의 다짐 서약입니다. 서약 완료 시 디지털 SEED 인증 뱃지가 발급됩니다.",
+          type: "pledge-badge",
+          pledgeItems: [
+            "나는 작은 실패를 배움의 기회로 삼고 지속적으로 성장하겠습니다.",
+            "나는 나만의 속도를 존중하며 타인과 따뜻하게 협력하겠습니다.",
+            "나는 오늘 세운 목표를 일상에서 꾸준히 실천하겠습니다."
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+const INITIAL_STUDENTS = [
+  {
+    id: "std_2026001",
+    studentNumber: "20231142",
+    name: "김민서",
+    department: "컴퓨터공학과",
+    avatar: "👩‍💻",
+    isPublic: true,
+    lastUpdated: "2026-08-19 14:20",
+    progress: 100,
+    likes: 12,
+    reactions: ["❤️", "👏", "💡"],
+    comments: [
+      { author: "이지은 (간호학과)", text: "비전보드가 너무 깔끔하고 구체적이에요! 응원합니다!", time: "10분 전" },
+      { author: "박도현 (경영학과)", text: "If-Then 계획 저도 써먹어야겠어요 ㅎㅎ 멋집니다.", time: "1시간 전" }
+    ],
+    workbook: {
+      s1_motto: "작은 실천이 쌓여 위대한 변화를 만든다!",
+      s1_values: ["v_growth", "v_passion", "v_creativity"],
+      s1_radar: { selfAwareness: 8, challenge: 7, problemSolving: 9, communication: 7, execution: 8 },
+      s1_reflection: "개발 프로젝트를 진행할 때 논리적 문제 해결력은 높으나, 혼자 고민하는 시간이 길었습니다. 이번 SEED를 통해 팀원들과 적극적으로 생각을 나누고 가치관인 지속적 성장을 실천하겠습니다.",
+      s2_interest: "웹 접근성을 고려한 사용자 친화적 반응형 웹 애플리케이션 개발",
+      s2_vision_board: [
+        { text: "프론트엔드 최적화 기술 스터디", color: "yellow", tag: "학습" },
+        { text: "포트폴리오 3개 완성 및 배포", color: "emerald", tag: "목표" },
+        { text: "오픈소스 프로젝트 첫 컨트리뷰션", color: "blue", tag: "도전" }
+      ],
+      s2_role_model: "기술을 통해 사회적 가치를 창출하는 오픈소스 개발자. 지식을 아낌없이 공유하는 자세를 배우고 싶습니다.",
+      s3_smart_goal: {
+        specific: "학기말까지 개인 포트폴리오 웹앱을 완성하여 Vercel에 배포하고 피드백 받기",
+        measurable: "일일 커밋 주 5회 이상, 사용자 피드백 10건 이상 수집",
+        actionStep: "매일 오후 8시부터 1시간 동안 컴포넌트 단위 코딩 및 회고 작성",
+        timeline: "2026년 10월 30일까지"
+      },
+      s3_action_roadmap: [
+        { step: 1, title: "기획 및 디자인 와이어프레임 설계", period: "1~2주차", done: true },
+        { step: 2, title: "핵심 인터랙티브 컴포넌트 개발", period: "3~4주차", done: true },
+        { step: 3, title: "사용자 테스트 및 버그 픽스", period: "5~6주차", done: true },
+        { step: 4, title: "배포 및 성과 공유회 발표", period: "7~8주차", done: true }
+      ],
+      s3_obstacle_plan: "[If] 시험 기간에 개발 시간이 부족하면 -> [Then] 주말 오전 2시간을 고정 개발 블록으로 확보한다.",
+      s4_kpt_review: {
+        keep: "매일 개발 일지를 노션에 꾸준히 기록한 점",
+        problem: "한 가지 에러에 너무 매달려 일정에 쫓긴 점",
+        try: "30분 이상 막히면 멘토링 요청 또는 페어 프로그래밍 시도하기"
+      },
+      s4_peer_message: "우리 모두 포기하지 않고 끝까지 완주해서 자랑스럽습니다! 취업까지 다들 파이팅!",
+      s4_pledge: true
+    }
+  },
+  {
+    id: "std_2026002",
+    studentNumber: "20240891",
+    name: "이지은",
+    department: "간호학과",
+    avatar: "🩺",
+    isPublic: true,
+    lastUpdated: "2026-08-19 11:15",
+    progress: 100,
+    likes: 18,
+    reactions: ["❤️", "👏", "🔥"],
+    comments: [
+      { author: "김민서 (컴퓨터공학과)", text: "지은님 환자를 향한 공감과 진심이 느껴집니다!", time: "30분 전" }
+    ],
+    workbook: {
+      s1_motto: "전문성과 따뜻한 공감으로 환자의 마음에 다가서는 간호사",
+      s1_values: ["v_empathy", "v_cooperation", "v_sincerity"],
+      s1_radar: { selfAwareness: 9, challenge: 6, problemSolving: 7, communication: 9, execution: 8 },
+      s1_reflection: "타인의 감정에 깊이 공감하고 소통하는 것이 저의 강점입니다. 긴급 상황에서 빠른 의사결정력을 보완하고자 시뮬레이션 실습을 강화하고 있습니다.",
+      s2_interest: "중환자 간호 전문성 강화 및 환자 안전 프로토콜 연구",
+      s2_vision_board: [
+        { text: "기본간호술 완벽 마스터", color: "pink", tag: "실습" },
+        { text: "BLS / ACLS 자격 취득", color: "emerald", tag: "자격" },
+        { text: "학술동아리 논문 발표", color: "yellow", tag: "학술" }
+      ],
+      s2_role_model: "임상 현장에서 환자 한 명 한 명을 인격적으로 대우하며 후배들을 이끌어주는 수간호사 선생님.",
+      s3_smart_goal: {
+        specific: "이번 학기 핵심 기본간호술기 18개 항목 완벽 숙달 및 자율실습 30시간 이수",
+        measurable: "술기 평가 전 항목 Pass 및 실습일지 100% 제출",
+        actionStep: "매주 화/목 방과 후 2시간 실습실에서 친구와 상호 술기 피드백 진행",
+        timeline: "2026년 11월 중순까지"
+      },
+      s3_action_roadmap: [
+        { step: 1, title: "핵심술기 이론 및 영상 복습", period: "1~2주차", done: true },
+        { step: 2, title: "파트너와 1:1 술기 실습", period: "3~4주차", done: true },
+        { step: 3, title: "모의 환자 시뮬레이션 평가", period: "5~6주차", done: true },
+        { step: 4, title: "최종 술기 마스터 인증 획득", period: "7~8주차", done: true }
+      ],
+      s3_obstacle_plan: "[If] 실습 중 실수를 하여 자존감이 낮아질 때 -> [Then] 오답 노트를 작성하고 '실수를 통해 배운다'는 마인드셋을 되새긴다.",
+      s4_kpt_review: {
+        keep: "환자 중심의 사고방식을 잃지 않고 기록한 점",
+        problem: "체력 관리가 부족해 피로가 누적된 점",
+        try: "주 3회 30분 유산소 운동으로 체력 기르기"
+      },
+      s4_peer_message: "서로 격려하며 실습했던 시간들 잊지 못할 거예요. 모두 멋진 의료인이 됩시다!",
+      s4_pledge: true
+    }
+  },
+  {
+    id: "std_2026003",
+    studentNumber: "20220315",
+    name: "박도현",
+    department: "경영학과",
+    avatar: "📈",
+    isPublic: true,
+    lastUpdated: "2026-08-19 13:45",
+    progress: 75,
+    likes: 8,
+    reactions: ["💡", "🚀"],
+    comments: [],
+    workbook: {
+      s1_motto: "데이터로 세상을 읽고 비즈니스 가치를 만든다",
+      s1_values: ["v_challenge", "v_creativity", "v_growth"],
+      s1_radar: { selfAwareness: 7, challenge: 9, problemSolving: 8, communication: 8, execution: 7 },
+      s1_reflection: "새로운 비즈니스 아이디어를 기획하고 추진하는 열정이 강점입니다. 기획 단계에서 리스크를 사전 검토하는 치밀함을 보완하고자 합니다.",
+      s2_interest: "소상공인을 위한 로컬 데이터 기반 마케팅 플랫폼 기획",
+      s2_vision_board: [
+        { text: "SQL 및 태블로 데이터 시각화", color: "blue", tag: "스킬" },
+        { text: "대학생 창업 경진대회 본선 진출", color: "emerald", tag: "도전" },
+        { text: "로컬 상권 인터뷰 10곳 진행", color: "yellow", tag: "현장" }
+      ],
+      s2_role_model: "사회적 문제를 혁신적인 비즈니스 모델로 풀어내는 소셜 벤처 창업가",
+      s3_smart_goal: {
+        specific: "창업 경진대회 사업계획서 완성 및 고객 검증 인터뷰 20명 달성",
+        measurable: "사업계획서 완성도 100%, 인터뷰 만족도 85% 이상",
+        actionStep: "팀원들과 주 2회 스프린트 회의 진행 및 프로토타입 설문 배포",
+        timeline: "2026년 9월 25일까지"
+      },
+      s3_action_roadmap: [
+        { step: 1, title: "시장 조사 및 타겟 페르소나 인터뷰", period: "1~2주차", done: true },
+        { step: 2, title: "수익 모델 및 린 캔버스 작성", period: "3~4주차", done: true },
+        { step: 3, title: "피치덱 제작 및 멘토링 피드백", period: "5~6주차", done: true },
+        { step: 4, title: "최종 데모데이 발표 및 네트워킹", period: "7~8주차", done: false }
+      ],
+      s3_obstacle_plan: "[If] 팀원 간 의견 조율이 길어져 진행이 지연되면 -> [Then] 데이터 근거 중심의 투표 제도를 도입해 결정을 신속히 내린다.",
+      s4_kpt_review: { keep: "적극적인 고객 인터뷰", problem: "일정 지연", try: "역할 분담 매트릭스" },
+      s4_peer_message: "실행이 곧 답이다! 모두들 끝까지 멋지게 해내시길 응원합니다.",
+      s4_pledge: false
+    }
+  },
+  {
+    id: "std_2026004",
+    studentNumber: "20251502",
+    name: "최서연",
+    department: "시각디자인학과",
+    avatar: "🎨",
+    isPublic: false,
+    lastUpdated: "2026-08-19 09:30",
+    progress: 100,
+    likes: 0,
+    reactions: [],
+    comments: [],
+    workbook: {
+      s1_motto: "나만의 색깔로 사람들에게 따뜻한 위로를 전하자",
+      s1_values: ["v_creativity", "v_empathy", "v_autonomy"],
+      s1_radar: { selfAwareness: 8, challenge: 6, problemSolving: 7, communication: 7, execution: 7 },
+      s1_reflection: "독창적인 시각 언어를 구축하는 것을 즐깁니다. 클라이언트 및 팀과의 피드백 수용 과정을 더 즐겁게 받아들이는 멘탈을 기르고자 합니다.",
+      s2_interest: "ESG 기반 친환경 브랜딩 및 인터랙티브 UI/UX 디자인",
+      s2_vision_board: [
+        { text: "Figma 고급 디자인 시스템 구축", color: "purple", tag: "디자인" },
+        { text: "국제 디자인 공모전 출품", color: "emerald", tag: "도전" }
+      ],
+      s2_role_model: "지속가능한 디자인으로 사회적 반향을 일으킨 브랜딩 디렉터",
+      s3_smart_goal: {
+        specific: "친환경 리패키징 브랜드 디자인 프로젝트 완성 및 공모전 제출",
+        measurable: "3개 콘셉트 시안 제작 및 목업 렌더링 15종 완성",
+        actionStep: "매일 1시간 레퍼런스 무드보드 리서치 및 스케치",
+        timeline: "2026년 10월 15일까지"
+      },
+      s3_action_roadmap: [
+        { step: 1, title: "브랜드 스토리텔링 및 무드보드", period: "1~2주차", done: true },
+        { step: 2, title: "로고 및 그래픽 모티프 개발", period: "3~4주차", done: true },
+        { step: 3, title: "3D 패키지 목업 및 스타일가이드", period: "5~6주차", done: true },
+        { step: 4, title: "공모전 패널 출품 및 피드백", period: "7~8주차", done: true }
+      ],
+      s3_obstacle_plan: "[If] 아이디어가 떠오르지 않는 슬럼프가 오면 -> [Then] 미술관 산책이나 서점에서 인스피레이션을 찾는다.",
+      s4_kpt_review: {
+        keep: "디자인 콘셉트에 대한 끊임없는 질문과 스케치",
+        problem: "완벽주의로 인한 스트레스",
+        try: "80% 완성 단계에서 먼저 중간 피드백 받기"
+      },
+      s4_peer_message: "비공개로 작성했지만 SEED 프로그램을 통해 제 내면을 깊이 들여다보는 귀중한 시간이었습니다.",
+      s4_pledge: true
+    }
+  },
+  {
+    id: "std_2026005",
+    studentNumber: "20230577",
+    name: "정우진",
+    department: "기계공학과",
+    avatar: "⚙️",
+    isPublic: true,
+    lastUpdated: "2026-08-19 15:05",
+    progress: 50,
+    likes: 5,
+    reactions: ["💡"],
+    comments: [],
+    workbook: {
+      s1_motto: "원리를 이해하고 끝까지 파고드는 끈기",
+      s1_values: ["v_sincerity", "v_resilience", "v_growth"],
+      s1_radar: { selfAwareness: 6, challenge: 7, problemSolving: 8, communication: 6, execution: 7 },
+      s1_reflection: "공학적 원리 탐구와 모델링에는 강점이 있으나, 문서화와 발표 능력이 다소 부족하여 이번 기회에 정리 습관을 기르고 있습니다.",
+      s2_interest: "스마트 모빌리티 자율주행 센서 융합 및 제어 알고리즘",
+      s2_vision_board: [
+        { text: "ROS2 자율주행 프레임워크 학습", color: "blue", tag: "공학" },
+        { text: "소형 자율주행 RC카 트랙 주행 성공", color: "emerald", tag: "실험" }
+      ],
+      s2_role_model: "현장의 문제를 혁신적 메커니즘으로 풀어내는 로봇 공학 엔지니어",
+      s3_smart_goal: {
+        specific: "센서 융합 기반 장애물 회피 주행 알고리즘 개발",
+        measurable: "장애물 인식 성공률 90% 달성",
+        actionStep: "매주 주말 연구실 테스트베드 주행 실험",
+        timeline: "2026년 10월 20일까지"
+      },
+      s3_action_roadmap: [
+        { step: 1, title: "라이다/카메라 센서 캘리브레이션", period: "1~2주차", done: true },
+        { step: 2, title: "경로 계획 알고리즘 코딩", period: "3~4주차", done: true },
+        { step: 3, title: "시뮬레이션 가상 주행 테스트", period: "5~6주차", done: false },
+        { step: 4, title: "실제 기체 탑재 및 트랙 주행", period: "7~8주차", done: false }
+      ],
+      s3_obstacle_plan: "",
+      s4_kpt_review: { keep: "", problem: "", try: "" },
+      s4_peer_message: "",
+      s4_pledge: false
+    }
+  }
+];
+
+/**
+ * 상태 및 로컬 스토리지 관리 (SeedStore)
+ */
+const STORAGE_KEYS = {
+  STUDENTS: "seed_students_v1",
+  CURRENT_USER_ID: "seed_current_user_id_v1",
+  CURRENT_ROLE: "seed_current_role_v1",
+  ACTIVE_STAGE: "seed_active_stage_v1"
+};
+
+class SeedStore {
+  constructor() {
+    this.init();
+  }
+
+  init() {
+    const storedStudents = localStorage.getItem(STORAGE_KEYS.STUDENTS);
+    if (!storedStudents) {
+      this.students = JSON.parse(JSON.stringify(INITIAL_STUDENTS));
+      this.saveStudents();
+    } else {
+      try {
+        this.students = JSON.parse(storedStudents);
+      } catch (e) {
+        this.students = JSON.parse(JSON.stringify(INITIAL_STUDENTS));
+        this.saveStudents();
+      }
+    }
+
+    const currentId = localStorage.getItem(STORAGE_KEYS.CURRENT_USER_ID);
+    if (currentId && this.getStudentById(currentId)) {
+      this.currentUserId = currentId;
+    } else {
+      this.currentUserId = this.students[0].id;
+      localStorage.setItem(STORAGE_KEYS.CURRENT_USER_ID, this.currentUserId);
+    }
+
+    this.currentRole = localStorage.getItem(STORAGE_KEYS.CURRENT_ROLE) || "student";
+    this.activeStage = parseInt(localStorage.getItem(STORAGE_KEYS.ACTIVE_STAGE) || "1", 10);
+  }
+
+  saveStudents() {
+    localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(this.students));
+    this.emitChange();
+  }
+
+  emitChange() {
+    window.dispatchEvent(new CustomEvent("seed_data_changed", { detail: { students: this.students } }));
+  }
+
+  setCurrentUser(studentId) {
+    if (this.getStudentById(studentId)) {
+      this.currentUserId = studentId;
+      localStorage.setItem(STORAGE_KEYS.CURRENT_USER_ID, studentId);
+      window.dispatchEvent(new CustomEvent("seed_user_changed", { detail: { user: this.getCurrentUser() } }));
+    }
+  }
+
+  setActiveStage(stageId) {
+    this.activeStage = stageId;
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_STAGE, stageId.toString());
+    window.dispatchEvent(new CustomEvent("seed_stage_changed", { detail: { stageId } }));
+  }
+
+  getAllStudents() {
+    return this.students;
+  }
+
+  getCurrentUser() {
+    return this.getStudentById(this.currentUserId) || this.students[0];
+  }
+
+  getStudentById(id) {
+    return this.students.find(s => s.id === id);
+  }
+
+  createNewStudent(name, studentNumber, department, avatar = "🌱") {
+    const newStudent = {
+      id: "std_" + Date.now(),
+      studentNumber: studentNumber || "2026" + Math.floor(1000 + Math.random() * 9000),
+      name: name || "새 참여자",
+      department: department || "자율전공학부",
+      avatar: avatar,
+      isPublic: true,
+      lastUpdated: this.getFormattedNow(),
+      progress: 0,
+      likes: 0,
+      reactions: [],
+      comments: [],
+      workbook: {
+        s1_motto: "",
+        s1_values: [],
+        s1_radar: { selfAwareness: 5, challenge: 5, problemSolving: 5, communication: 5, execution: 5 },
+        s1_reflection: "",
+        s2_interest: "",
+        s2_vision_board: [
+          { text: "나만의 비전 스티커를 작성해보세요!", color: "yellow", tag: "시작" }
+        ],
+        s2_role_model: "",
+        s3_smart_goal: { specific: "", measurable: "", actionStep: "", timeline: "" },
+        s3_action_roadmap: [
+          { step: 1, title: "1단계 계획 수립", period: "1~2주차", done: false },
+          { step: 2, title: "2단계 실행", period: "3~4주차", done: false },
+          { step: 3, title: "3단계 점검", period: "5~6주차", done: false },
+          { step: 4, title: "4단계 성과 정리", period: "7~8주차", done: false }
+        ],
+        s3_obstacle_plan: "",
+        s4_kpt_review: { keep: "", problem: "", try: "" },
+        s4_peer_message: "",
+        s4_pledge: false
+      }
+    };
+
+    this.students.push(newStudent);
+    this.currentUserId = newStudent.id;
+    localStorage.setItem(STORAGE_KEYS.CURRENT_USER_ID, newStudent.id);
+    this.saveStudents();
+    return newStudent;
+  }
+
+  updateWorkbookField(fieldKey, value) {
+    const student = this.getCurrentUser();
+    if (!student) return;
+
+    if (!student.workbook) student.workbook = {};
+    student.workbook[fieldKey] = value;
+    student.lastUpdated = this.getFormattedNow();
+    student.progress = this.calculateProgress(student);
+
+    this.saveStudents();
+  }
+
+  togglePublicStatus(studentId = null) {
+    const targetId = studentId || this.currentUserId;
+    const student = this.getStudentById(targetId);
+    if (!student) return;
+
+    student.isPublic = !student.isPublic;
+    student.lastUpdated = this.getFormattedNow();
+    this.saveStudents();
+    return student.isPublic;
+  }
+
+  addReaction(studentId, emoji) {
+    const student = this.getStudentById(studentId);
+    if (!student) return;
+
+    if (!student.reactions) student.reactions = [];
+    student.reactions.push(emoji);
+    student.likes = (student.likes || 0) + 1;
+    this.saveStudents();
+  }
+
+  addComment(targetStudentId, commentText, authorName = null) {
+    const target = this.getStudentById(targetStudentId);
+    if (!target) return;
+
+    const currentUser = this.getCurrentUser();
+    const author = authorName || (currentUser ? `${currentUser.name} (${currentUser.department})` : "익명의 학우");
+
+    if (!target.comments) target.comments = [];
+    target.comments.unshift({
+      id: "cmt_" + Date.now(),
+      author: author,
+      text: commentText,
+      time: "방금 전"
+    });
+
+    this.saveStudents();
+  }
+
+  calculateProgress(student) {
+    if (!student || !student.workbook) return 0;
+    const wb = student.workbook;
+    let score = 0;
+    const maxScore = 12;
+
+    if (wb.s1_motto && wb.s1_motto.trim().length > 2) score += 1;
+    if (wb.s1_values && wb.s1_values.length > 0) score += 1;
+    if (wb.s1_reflection && wb.s1_reflection.trim().length > 5) score += 1;
+
+    if (wb.s2_interest && wb.s2_interest.trim().length > 2) score += 1;
+    if (wb.s2_vision_board && wb.s2_vision_board.length > 0) score += 1;
+    if (wb.s2_role_model && wb.s2_role_model.trim().length > 5) score += 1;
+
+    if (wb.s3_smart_goal && (wb.s3_smart_goal.specific || wb.s3_smart_goal.actionStep)) score += 1;
+    if (wb.s3_action_roadmap && wb.s3_action_roadmap.length > 0) score += 1;
+    if (wb.s3_obstacle_plan && wb.s3_obstacle_plan.trim().length > 5) score += 1;
+
+    if (wb.s4_kpt_review && (wb.s4_kpt_review.keep || wb.s4_kpt_review.try)) score += 1;
+    if (wb.s4_peer_message && wb.s4_peer_message.trim().length > 3) score += 1;
+    if (wb.s4_pledge) score += 1;
+
+    return Math.min(100, Math.round((score / maxScore) * 100));
+  }
+
+  getStageCompletion(student, stageId) {
+    if (!student || !student.workbook) return false;
+    const wb = student.workbook;
+    if (stageId === 1) {
+      return !!(wb.s1_motto && wb.s1_values?.length > 0 && wb.s1_reflection);
+    } else if (stageId === 2) {
+      return !!(wb.s2_interest && wb.s2_vision_board?.length > 0);
+    } else if (stageId === 3) {
+      return !!(wb.s3_smart_goal?.specific && wb.s3_action_roadmap?.length > 0);
+    } else if (stageId === 4) {
+      return !!(wb.s4_kpt_review?.keep && wb.s4_pledge);
+    }
+    return false;
+  }
+
+  getFormattedNow() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    const d = String(now.getDate()).padStart(2, "0");
+    const h = String(now.getHours()).padStart(2, "0");
+    const min = String(now.getMinutes()).padStart(2, "0");
+    return `${y}-${m}-${d} ${h}:${min}`;
+  }
+
+  resetToSampleData() {
+    this.students = JSON.parse(JSON.stringify(INITIAL_STUDENTS));
+    this.currentUserId = this.students[0].id;
+    localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(this.students));
+    localStorage.setItem(STORAGE_KEYS.CURRENT_USER_ID, this.currentUserId);
+    this.emitChange();
+  }
+}
+
+const store = new SeedStore();
+
+/**
+ * 인터랙티브 워크북 컴포넌트 로직 (WorkbookManager)
+ */
+class WorkbookManager {
+  constructor() {
+    this.container = document.getElementById("workbookContent");
+    this.stageNavContainer = document.getElementById("stageNavigation");
+    this.growthVisualContainer = document.getElementById("growthVisualizer");
+    this.radarChartInstance = null;
+    this.saveTimeout = null;
+
+    this.initEventListeners();
+  }
+
+  initEventListeners() {
+    window.addEventListener("seed_user_changed", () => this.render());
+    window.addEventListener("seed_stage_changed", () => this.render());
+    window.addEventListener("seed_data_changed", () => this.updateGrowthVisual());
+  }
+
+  render() {
+    if (!this.container) return;
+    const student = store.getCurrentUser();
+    const activeStageId = store.activeStage || 1;
+    const stageConfig = SEED_CONFIG.stages.find(s => s.id === activeStageId) || SEED_CONFIG.stages[0];
+
+    this.renderStageNav(activeStageId, student);
+    this.renderHeader(student);
+    this.renderStageContent(stageConfig, student);
+
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  renderHeader(student) {
+    const progress = student ? student.progress : 0;
+    const isPublic = student ? student.isPublic : true;
+
+    let growthStage = {
+      level: "씨앗 단계",
+      emoji: "🌱",
+      badge: "bg-emerald-100 text-emerald-800 border-emerald-300",
+      desc: "가능성의 씨앗을 심고 나를 발견하는 중입니다."
+    };
+
+    if (progress >= 100) {
+      growthStage = {
+        level: "풍성한 결실 나무",
+        emoji: "🌳🍎",
+        badge: "bg-purple-100 text-purple-800 border-purple-300",
+        desc: "모든 차시를 완주하여 멋진 열매를 맺었습니다! 축하합니다!"
+      };
+    } else if (progress >= 75) {
+      growthStage = {
+        level: "아름다운 꽃 단계",
+        emoji: "🌸",
+        badge: "bg-pink-100 text-pink-800 border-pink-300",
+        desc: "목표를 향해 꽃을 피우며 성장의 결실을 맺어가고 있습니다."
+      };
+    } else if (progress >= 50) {
+      growthStage = {
+        level: "튼튼한 가지 단계",
+        emoji: "🌿",
+        badge: "bg-amber-100 text-amber-800 border-amber-300",
+        desc: "실천과 도전을 통해 힘차게 가지를 뻗어 나가고 있습니다."
+      };
+    } else if (progress >= 25) {
+      growthStage = {
+        level: "파릇파릇 새싹 단계",
+        emoji: "🌱",
+        badge: "bg-blue-100 text-blue-800 border-blue-300",
+        desc: "관심사를 탐색하며 힘차게 싹을 틔우고 있습니다."
+      };
+    }
+
+    if (this.growthVisualContainer) {
+      this.growthVisualContainer.innerHTML = `
+        <div class="glass-card rounded-2xl p-6 mb-8 border border-slate-200/80 shadow-sm relative overflow-hidden">
+          <div class="absolute -right-6 -bottom-6 w-40 h-40 rounded-full bg-emerald-100/50 pointer-events-none blur-2xl"></div>
+          <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
+            
+            <div class="flex items-center gap-4">
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-400 to-teal-500 flex items-center justify-center text-3xl shadow-md text-white font-bold growth-stage-anim">
+                ${student.avatar || "🌱"}
+              </div>
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <h2 class="text-xl font-bold text-slate-800">${student.name} <span class="text-xs font-normal text-slate-500">(${student.studentNumber} · ${student.department})</span></h2>
+                  <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full border ${growthStage.badge}">
+                    ${growthStage.emoji} ${growthStage.level}
+                  </span>
+                </div>
+                <p class="text-xs text-slate-500">${growthStage.desc}</p>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-4 w-full lg:w-auto">
+              
+              <div class="bg-white/80 rounded-xl px-4 py-2.5 border border-slate-200 shadow-sm min-w-[200px] flex-1 lg:flex-none">
+                <div class="flex justify-between text-xs font-semibold mb-1.5">
+                  <span class="text-slate-600">워크북 전체 진행률</span>
+                  <span class="text-emerald-600 font-bold">${progress}%</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                  <div class="bg-gradient-to-r from-emerald-400 to-teal-500 h-full rounded-full transition-all duration-500" style="width: ${progress}%"></div>
+                </div>
+              </div>
+
+              <div class="bg-white/80 rounded-xl px-4 py-2.5 border border-slate-200 shadow-sm flex items-center gap-3">
+                <div class="text-left">
+                  <div class="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                    <span>${isPublic ? "🌍 전체 공개" : "🔒 나만 보기"}</span>
+                  </div>
+                  <div class="text-[11px] text-slate-400">
+                    ${isPublic ? "동료 갤러리 공유 중" : "비공개 (관리자만 열람)"}
+                  </div>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="publicToggleBtn" class="sr-only peer" ${isPublic ? "checked" : ""}>
+                  <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                </label>
+              </div>
+
+              <button id="printWorkbookBtn" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-medium rounded-xl transition shadow-sm flex items-center gap-1.5 no-print">
+                <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                <span>인쇄/PDF</span>
+              </button>
+
+            </div>
+
+          </div>
+
+          <div id="autoSaveIndicator" class="text-[11px] text-slate-400 text-right mt-2 flex items-center justify-end gap-1">
+            <i data-lucide="check" class="w-3 h-3 text-emerald-500"></i>
+            <span>최근 저장: ${student.lastUpdated || "방금 전"}</span>
+          </div>
+        </div>
+      `;
+
+      const toggleBtn = document.getElementById("publicToggleBtn");
+      if (toggleBtn) {
+        toggleBtn.addEventListener("change", () => {
+          const newStatus = store.togglePublicStatus();
+          app.showToast(newStatus ? "내 워크북이 동료 갤러리에 공개되었습니다." : "내 워크북이 비공개로 전환되었습니다.", "info");
+          this.render();
+        });
+      }
+
+      const printBtn = document.getElementById("printWorkbookBtn");
+      if (printBtn) {
+        printBtn.addEventListener("click", () => window.print());
+      }
+    }
+  }
+
+  renderStageNav(activeStageId, student) {
+    if (!this.stageNavContainer) return;
+
+    this.stageNavContainer.innerHTML = SEED_CONFIG.stages.map(stage => {
+      const isActive = stage.id === activeStageId;
+      const isCompleted = store.getStageCompletion(student, stage.id);
+
+      let activeClass = isActive
+        ? "border-emerald-500 bg-emerald-50/70 text-emerald-900 shadow-sm"
+        : "border-slate-200 bg-white/70 hover:bg-slate-50 text-slate-600";
+
+      return `
+        <button data-stage-id="${stage.id}" class="stage-nav-btn flex-1 min-w-[140px] text-left p-3.5 rounded-2xl border-2 transition-all relative ${activeClass}">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-bold px-2 py-0.5 rounded-md ${isActive ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-600'}">
+              ${stage.code} 단계
+            </span>
+            ${isCompleted ? '<span class="text-emerald-600 text-xs font-bold flex items-center gap-0.5"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> 완료</span>' : '<span class="text-slate-400 text-xs">작성 중</span>'}
+          </div>
+          <div class="font-bold text-sm text-slate-800 truncate">${stage.title.split(':')[1] || stage.title}</div>
+          <div class="text-[11px] text-slate-400 truncate mt-0.5">${stage.badgeText}</div>
+        </button>
+      `;
+    }).join("");
+
+    this.stageNavContainer.querySelectorAll(".stage-nav-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const stageId = parseInt(e.currentTarget.getAttribute("data-stage-id"), 10);
+        store.setActiveStage(stageId);
+      });
+    });
+  }
+
+  renderStageContent(stageConfig, student) {
+    if (!this.container) return;
+
+    let contentHtml = `
+      <div class="stage-transition">
+        <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white mb-8 shadow-md relative overflow-hidden">
+          <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <span class="px-3 py-1 bg-emerald-500/30 border border-emerald-400/40 text-emerald-300 text-xs font-semibold rounded-full inline-block mb-2">
+                ${stageConfig.badgeText}
+              </span>
+              <h3 class="text-2xl font-extrabold tracking-tight">${stageConfig.title}</h3>
+              <p class="text-slate-300 text-sm mt-1">${stageConfig.subTitle}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-emerald-200 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10">
+                🌱 실시간 자동 저장 적용
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-8">
+    `;
+
+    stageConfig.sections.forEach((sec, idx) => {
+      contentHtml += `
+        <div class="glass-card rounded-2xl p-6 sm:p-8 border border-slate-200/90 shadow-sm hover:shadow-md transition">
+          <div class="mb-5 pb-3 border-b border-slate-100">
+            <h4 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs flex items-center justify-center font-bold">
+                ${idx + 1}
+              </span>
+              ${sec.title}
+            </h4>
+            <p class="text-xs text-slate-500 mt-1 ml-8">${sec.desc}</p>
+          </div>
+          <div class="section-body">
+            ${this.renderSectionWidget(sec, student)}
+          </div>
+        </div>
+      `;
+    });
+
+    const prevStage = stageConfig.id > 1 ? stageConfig.id - 1 : null;
+    const nextStage = stageConfig.id < 4 ? stageConfig.id + 1 : null;
+
+    contentHtml += `
+        </div>
+
+        <div class="flex justify-between items-center mt-10 pt-6 border-t border-slate-200 no-print">
+          ${prevStage ? `
+            <button onclick="store.setActiveStage(${prevStage})" class="px-5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold text-sm hover:bg-slate-50 transition flex items-center gap-2">
+              <i data-lucide="arrow-left" class="w-4 h-4"></i> 이전 차시
+            </button>
+          ` : '<div></div>'}
+
+          ${nextStage ? `
+            <button onclick="store.setActiveStage(${nextStage})" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-sm transition flex items-center gap-2">
+              다음 차시 이동 <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+          ` : `
+            <button onclick="workbookManager.triggerFinalCelebration()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-sm shadow-md transition flex items-center gap-2">
+              🎉 SEED 완주 축하 및 인증서 보기
+            </button>
+          `}
+        </div>
+
+      </div>
+    `;
+
+    this.container.innerHTML = contentHtml;
+    this.bindWidgetEvents(stageConfig, student);
+  }
+
+  renderSectionWidget(sec, student) {
+    const wb = student.workbook || {};
+
+    switch (sec.type) {
+      case "text": {
+        const val = wb[sec.id] || "";
+        return `
+          <input type="text" data-field="${sec.id}" value="${val}" placeholder="${sec.placeholder || ''}"
+            class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none text-slate-800 text-sm transition bg-white/90" />
+        `;
+      }
+
+      case "textarea": {
+        const val = wb[sec.id] || "";
+        return `
+          <textarea data-field="${sec.id}" rows="4" placeholder="${sec.placeholder || ''}"
+            class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none text-slate-800 text-sm transition resize-y bg-white/90">${val}</textarea>
+        `;
+      }
+
+      case "card-select": {
+        const selected = wb[sec.id] || [];
+        return `
+          <div class="space-y-3">
+            <div class="flex items-center justify-between text-xs text-slate-500">
+              <span>원하는 카드를 클릭하여 최대 ${sec.maxSelect}개까지 선택하세요.</span>
+              <span class="font-bold text-emerald-600" id="cardSelectCounter">선택됨: ${selected.length} / ${sec.maxSelect}</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3" id="cardSelectGrid">
+              ${sec.options.map(opt => {
+                const isChecked = selected.includes(opt.id);
+                return `
+                  <div data-opt-id="${opt.id}" class="selectable-card p-3 rounded-xl border-2 text-center flex flex-col items-center justify-center gap-1.5 transition ${isChecked ? 'selected' : 'border-slate-200 bg-white hover:border-slate-300'}">
+                    <span class="text-xl">${this.getIconEmoji(opt.icon)}</span>
+                    <span class="text-xs font-semibold text-slate-700">${opt.label}</span>
+                    <span class="w-4 h-4 rounded-full border ${isChecked ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300'} flex items-center justify-center text-[10px]">
+                      ${isChecked ? '✓' : ''}
+                    </span>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      case "radar-slider": {
+        const currentScores = wb[sec.id] || { selfAwareness: 7, challenge: 6, problemSolving: 8, communication: 7, execution: 6 };
+        return `
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div class="lg:col-span-6 space-y-4">
+              ${sec.metrics.map(m => {
+                const val = currentScores[m.key] || m.default;
+                return `
+                  <div class="space-y-1">
+                    <div class="flex justify-between text-xs font-semibold text-slate-700">
+                      <span>${m.label}</span>
+                      <span class="text-emerald-600 font-bold" id="radarVal_${m.key}">${val}점 / 10</span>
+                    </div>
+                    <input type="range" min="1" max="10" value="${val}" data-metric="${m.key}"
+                      class="custom-slider w-full cursor-pointer radar-slider-input" />
+                  </div>
+                `;
+              }).join("")}
+            </div>
+
+            <div class="lg:col-span-6 flex flex-col items-center justify-center bg-slate-50/70 p-4 rounded-2xl border border-slate-200/80">
+              <div class="text-xs font-semibold text-slate-600 mb-2">📊 나의 실시간 역량 밸런스 레이더</div>
+              <div class="w-full max-w-[280px] h-[260px] relative">
+                <canvas id="competencyRadarChart"></canvas>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      case "sticky-canvas": {
+        const stickyList = wb[sec.id] || sec.defaultSticky || [];
+        return `
+          <div class="space-y-4">
+            <div class="flex flex-wrap items-center gap-2 p-3 bg-slate-100/80 rounded-xl">
+              <input type="text" id="newStickyInput" placeholder="새로운 비전/목표 메모를 입력하세요..." 
+                class="flex-1 min-w-[200px] px-3 py-1.5 rounded-lg border border-slate-300 text-xs outline-none focus:border-emerald-500 bg-white" />
+              
+              <div class="flex items-center gap-1 text-xs">
+                <span class="text-slate-500">색상:</span>
+                <button type="button" data-color="yellow" class="color-pick-btn w-6 h-6 rounded-full bg-amber-200 border-2 border-slate-700 ring-2 ring-emerald-400"></button>
+                <button type="button" data-color="emerald" class="color-pick-btn w-6 h-6 rounded-full bg-emerald-200 border border-slate-300"></button>
+                <button type="button" data-color="blue" class="color-pick-btn w-6 h-6 rounded-full bg-blue-200 border border-slate-300"></button>
+                <button type="button" data-color="pink" class="color-pick-btn w-6 h-6 rounded-full bg-pink-200 border border-slate-300"></button>
+                <button type="button" data-color="purple" class="color-pick-btn w-6 h-6 rounded-full bg-purple-200 border border-slate-300"></button>
+              </div>
+
+              <button type="button" id="addStickyBtn" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition flex items-center gap-1">
+                <i data-lucide="plus" class="w-3 h-3"></i> 메모 붙이기
+              </button>
+            </div>
+
+            <div id="stickyBoardGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 min-h-[160px] p-4 bg-amber-50/30 rounded-2xl border border-dashed border-amber-200/80">
+              ${stickyList.map((item, i) => this.renderStickyCard(item, i)).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      case "smart-grid": {
+        const smart = wb[sec.id] || {};
+        return `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${sec.fields.map(f => {
+              const val = smart[f.key] || "";
+              return `
+                <div class="p-4 rounded-xl bg-slate-50/80 border border-slate-200/80">
+                  <label class="block text-xs font-bold text-slate-700 mb-1">${f.label}</label>
+                  <input type="text" data-smart-key="${f.key}" value="${val}" placeholder="${f.placeholder}"
+                    class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:border-emerald-500 focus:ring-1 focus:ring-emerald-200 outline-none bg-white" />
+                </div>
+              `;
+            }).join("")}
+          </div>
+        `;
+      }
+
+      case "roadmap-builder": {
+        const roadmap = wb[sec.id] || sec.defaultRoadmap || [];
+        return `
+          <div class="space-y-3" id="roadmapContainer">
+            ${roadmap.map((step, idx) => `
+              <div class="flex items-center gap-3 p-3.5 rounded-xl border transition ${step.done ? 'bg-emerald-50/60 border-emerald-300' : 'bg-white border-slate-200'}">
+                <input type="checkbox" data-roadmap-step="${idx}" ${step.done ? 'checked' : ''}
+                  class="roadmap-checkbox w-5 h-5 rounded text-emerald-600 focus:ring-emerald-400 cursor-pointer" />
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold px-2 py-0.5 rounded ${step.done ? 'bg-emerald-200 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
+                      ${step.period}
+                    </span>
+                    <span class="text-xs font-semibold ${step.done ? 'line-through text-slate-400' : 'text-slate-700'}">${step.title}</span>
+                  </div>
+                </div>
+                <button type="button" data-roadmap-del="${idx}" class="text-slate-400 hover:text-red-500 p-1 text-xs">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            `).join("")}
+          </div>
+          <div class="flex gap-2 mt-3">
+            <input type="text" id="newRoadmapPeriod" placeholder="기간 (예: 9~10주차)" class="w-28 px-3 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
+            <input type="text" id="newRoadmapTitle" placeholder="실행할 마일스톤 활동명 입력..." class="flex-1 px-3 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
+            <button type="button" id="addRoadmapBtn" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold flex items-center gap-1">
+              <i data-lucide="plus" class="w-3 h-3"></i> 단계 추가
+            </button>
+          </div>
+        `;
+      }
+
+      case "kpt-grid": {
+        const kpt = wb[sec.id] || sec.defaultKpt || { keep: "", problem: "", try: "" };
+        return `
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200">
+              <div class="flex items-center gap-2 text-xs font-bold text-emerald-800 mb-2">
+                <span class="w-5 h-5 rounded-full bg-emerald-200 flex items-center justify-center">K</span>
+                <span>Keep (지속할 점)</span>
+              </div>
+              <textarea data-kpt-key="keep" rows="3" placeholder="이번 활동에서 잘해서 계속 유지하고 싶은 점은?"
+                class="w-full p-2.5 rounded-lg border border-emerald-200 text-xs bg-white focus:outline-none focus:border-emerald-500">${kpt.keep || ''}</textarea>
+            </div>
+
+            <div class="p-4 rounded-xl bg-rose-50/70 border border-rose-200">
+              <div class="flex items-center gap-2 text-xs font-bold text-rose-800 mb-2">
+                <span class="w-5 h-5 rounded-full bg-rose-200 flex items-center justify-center">P</span>
+                <span>Problem (아쉬운 점)</span>
+              </div>
+              <textarea data-kpt-key="problem" rows="3" placeholder="활동 중 아쉬웠거나 개선이 필요한 장애물은?"
+                class="w-full p-2.5 rounded-lg border border-rose-200 text-xs bg-white focus:outline-none focus:border-rose-500">${kpt.problem || ''}</textarea>
+            </div>
+
+            <div class="p-4 rounded-xl bg-blue-50/70 border border-blue-200">
+              <div class="flex items-center gap-2 text-xs font-bold text-blue-800 mb-2">
+                <span class="w-5 h-5 rounded-full bg-blue-200 flex items-center justify-center">T</span>
+                <span>Try (시도할 점)</span>
+              </div>
+              <textarea data-kpt-key="try" rows="3" placeholder="다음에 새롭게 적용하거나 실천할 해결책은?"
+                class="w-full p-2.5 rounded-lg border border-blue-200 text-xs bg-white focus:outline-none focus:border-blue-500">${kpt.try || ''}</textarea>
+            </div>
+          </div>
+        `;
+      }
+
+      case "pledge-badge": {
+        const isPledged = !!wb[sec.id];
+        return `
+          <div class="p-6 rounded-2xl bg-gradient-to-br from-purple-50 via-indigo-50 to-pink-50 border border-purple-200/80 text-center space-y-4">
+            <div class="text-3xl">📜✨</div>
+            <h5 class="text-base font-bold text-purple-900">나의 SEED 성장 실천 서약</h5>
+            
+            <div class="max-w-md mx-auto space-y-2 text-left text-xs text-purple-950 bg-white/70 p-4 rounded-xl border border-purple-100">
+              ${sec.pledgeItems.map(item => `
+                <div class="flex items-start gap-2">
+                  <span class="text-purple-600 font-bold">🌱</span>
+                  <span>${item}</span>
+                </div>
+              `).join("")}
+            </div>
+
+            <div class="pt-2">
+              <button type="button" id="pledgeBtn" class="px-6 py-2.5 rounded-xl font-bold text-xs transition shadow-sm ${isPledged ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-purple-600 text-white hover:bg-purple-700'}">
+                ${isPledged ? '✓ 서약 완료됨 (클릭하여 갱신)' : '위 내용을 마음에 새기고 서약합니다'}
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      default:
+        return `<div class="text-xs text-slate-400">지원되지 않는 위젯입니다.</div>`;
+    }
+  }
+
+  renderStickyCard(item, idx) {
+    const colorClasses = {
+      yellow: "bg-amber-100 text-amber-900 border-amber-200",
+      emerald: "bg-emerald-100 text-emerald-900 border-emerald-200",
+      blue: "bg-blue-100 text-blue-900 border-blue-200",
+      pink: "bg-pink-100 text-pink-900 border-pink-200",
+      purple: "bg-purple-100 text-purple-900 border-purple-200"
+    };
+
+    const cls = colorClasses[item.color] || colorClasses.yellow;
+
+    return `
+      <div class="sticky-note p-4 rounded-xl border ${cls} flex flex-col justify-between min-h-[110px]">
+        <div class="flex justify-between items-start mb-2">
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-black/10">#${item.tag || '비전'}</span>
+          <button type="button" data-del-sticky="${idx}" class="text-slate-400 hover:text-red-600 text-xs">
+            ✕
+          </button>
+        </div>
+        <p class="text-xs font-semibold leading-relaxed">${item.text}</p>
+        <div class="text-[10px] text-slate-400 text-right mt-2">🌱 SEED Vision</div>
+      </div>
+    `;
+  }
+
+  bindWidgetEvents(stageConfig, student) {
+    const wb = student.workbook || {};
+
+    this.container.querySelectorAll("input[data-field], textarea[data-field]").forEach(elem => {
+      elem.addEventListener("input", (e) => {
+        const field = e.target.getAttribute("data-field");
+        const val = e.target.value;
+        this.triggerAutoSave(field, val);
+      });
+    });
+
+    const cardSection = stageConfig.sections.find(s => s.type === "card-select");
+    if (cardSection) {
+      let selectedValues = wb[cardSection.id] || [];
+
+      this.container.querySelectorAll(".selectable-card").forEach(card => {
+        card.addEventListener("click", () => {
+          const optId = card.getAttribute("data-opt-id");
+          if (selectedValues.includes(optId)) {
+            selectedValues = selectedValues.filter(id => id !== optId);
+          } else {
+            if (selectedValues.length >= cardSection.maxSelect) {
+              app.showToast(`핵심 가치는 최대 ${cardSection.maxSelect}개까지 선택할 수 있습니다.`, "warning");
+              return;
+            }
+            selectedValues.push(optId);
+          }
+          store.updateWorkbookField(cardSection.id, selectedValues);
+          this.render();
+        });
+      });
+    }
+
+    const radarSection = stageConfig.sections.find(s => s.type === "radar-slider");
+    if (radarSection) {
+      const radarCanvas = document.getElementById("competencyRadarChart");
+      if (radarCanvas) {
+        this.initRadarChart(radarCanvas, wb[radarSection.id] || {});
+
+        this.container.querySelectorAll(".radar-slider-input").forEach(slider => {
+          slider.addEventListener("input", (e) => {
+            const metric = e.target.getAttribute("data-metric");
+            const val = parseInt(e.target.value, 10);
+            const valDisplay = document.getElementById(`radarVal_${metric}`);
+            if (valDisplay) valDisplay.innerText = `${val}점 / 10`;
+
+            const currentScores = wb[radarSection.id] || { selfAwareness: 7, challenge: 6, problemSolving: 8, communication: 7, execution: 6 };
+            currentScores[metric] = val;
+            this.updateRadarChart(currentScores);
+            this.triggerAutoSave(radarSection.id, currentScores);
+          });
+        });
+      }
+    }
+
+    const stickySection = stageConfig.sections.find(s => s.type === "sticky-canvas");
+    if (stickySection) {
+      let selectedColor = "yellow";
+      const colorBtns = this.container.querySelectorAll(".color-pick-btn");
+      colorBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+          colorBtns.forEach(b => b.classList.remove("ring-2", "ring-emerald-400", "border-slate-700"));
+          btn.classList.add("ring-2", "ring-emerald-400", "border-slate-700");
+          selectedColor = btn.getAttribute("data-color");
+        });
+      });
+
+      const addBtn = document.getElementById("addStickyBtn");
+      const input = document.getElementById("newStickyInput");
+      if (addBtn && input) {
+        addBtn.addEventListener("click", () => {
+          const text = input.value.trim();
+          if (!text) {
+            app.showToast("메모 내용을 입력해주세요.", "warning");
+            return;
+          }
+          const list = wb[stickySection.id] || [];
+          list.push({ text: text, color: selectedColor, tag: "비전" });
+          store.updateWorkbookField(stickySection.id, list);
+          input.value = "";
+          this.render();
+          app.showToast("새로운 비전 메모가 추가되었습니다!", "success");
+        });
+      }
+
+      this.container.querySelectorAll("[data-del-sticky]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          const idx = parseInt(e.currentTarget.getAttribute("data-del-sticky"), 10);
+          const list = wb[stickySection.id] || [];
+          list.splice(idx, 1);
+          store.updateWorkbookField(stickySection.id, list);
+          this.render();
+        });
+      });
+    }
+
+    this.container.querySelectorAll("input[data-smart-key]").forEach(input => {
+      input.addEventListener("input", () => {
+        const smart = wb["s3_smart_goal"] || {};
+        const key = input.getAttribute("data-smart-key");
+        smart[key] = input.value;
+        this.triggerAutoSave("s3_smart_goal", smart);
+      });
+    });
+
+    this.container.querySelectorAll(".roadmap-checkbox").forEach(cb => {
+      cb.addEventListener("change", (e) => {
+        const idx = parseInt(e.target.getAttribute("data-roadmap-step"), 10);
+        const roadmap = wb["s3_action_roadmap"] || [];
+        if (roadmap[idx]) {
+          roadmap[idx].done = e.target.checked;
+          store.updateWorkbookField("s3_action_roadmap", roadmap);
+          this.render();
+        }
+      });
+    });
+
+    this.container.querySelectorAll("[data-roadmap-del]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const idx = parseInt(e.currentTarget.getAttribute("data-roadmap-del"), 10);
+        const roadmap = wb["s3_action_roadmap"] || [];
+        roadmap.splice(idx, 1);
+        store.updateWorkbookField("s3_action_roadmap", roadmap);
+        this.render();
+      });
+    });
+
+    const addRoadmapBtn = document.getElementById("addRoadmapBtn");
+    const periodInput = document.getElementById("newRoadmapPeriod");
+    const titleInput = document.getElementById("newRoadmapTitle");
+    if (addRoadmapBtn && periodInput && titleInput) {
+      addRoadmapBtn.addEventListener("click", () => {
+        const title = titleInput.value.trim();
+        const period = periodInput.value.trim() || "추가 단계";
+        if (!title) {
+          app.showToast("실행 활동명을 입력해주세요.", "warning");
+          return;
+        }
+        const roadmap = wb["s3_action_roadmap"] || [];
+        roadmap.push({ step: roadmap.length + 1, title: title, period: period, done: false });
+        store.updateWorkbookField("s3_action_roadmap", roadmap);
+        this.render();
+        app.showToast("새로운 로드맵 마일스톤이 추가되었습니다.", "success");
+      });
+    }
+
+    this.container.querySelectorAll("textarea[data-kpt-key]").forEach(ta => {
+      ta.addEventListener("input", () => {
+        const kpt = wb["s4_kpt_review"] || {};
+        const key = ta.getAttribute("data-kpt-key");
+        kpt[key] = ta.value;
+        this.triggerAutoSave("s4_kpt_review", kpt);
+      });
+    });
+
+    const pledgeBtn = document.getElementById("pledgeBtn");
+    if (pledgeBtn) {
+      pledgeBtn.addEventListener("click", () => {
+        const currentStatus = !!wb["s4_pledge"];
+        store.updateWorkbookField("s4_pledge", !currentStatus);
+        if (!currentStatus) {
+          this.triggerConfetti();
+          app.showToast("🎉 축하합니다! SEED 성장 서약이 등록되었습니다!", "success");
+        }
+        this.render();
+      });
+    }
+  }
+
+  initRadarChart(canvas, scores) {
+    if (this.radarChartInstance) {
+      this.radarChartInstance.destroy();
+    }
+
+    const dataValues = [
+      scores.selfAwareness || 7,
+      scores.challenge || 6,
+      scores.problemSolving || 8,
+      scores.communication || 7,
+      scores.execution || 6
+    ];
+
+    const ctx = canvas.getContext("2d");
+    this.radarChartInstance = new Chart(ctx, {
+      type: "radar",
+      data: {
+        labels: ["자기이해", "도전의식", "문제해결", "소통협업", "실행력"],
+        datasets: [{
+          label: "현재 역량",
+          data: dataValues,
+          backgroundColor: "rgba(16, 185, 129, 0.25)",
+          borderColor: "#10b981",
+          borderWidth: 2,
+          pointBackgroundColor: "#059669",
+          pointRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          r: {
+            min: 0,
+            max: 10,
+            ticks: { stepSize: 2, display: false },
+            pointLabels: { font: { size: 11, family: "Pretendard" }, color: "#475569" },
+            grid: { color: "rgba(148, 163, 184, 0.2)" }
+          }
+        },
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+  }
+
+  updateRadarChart(scores) {
+    if (!this.radarChartInstance) return;
+    this.radarChartInstance.data.datasets[0].data = [
+      scores.selfAwareness || 7,
+      scores.challenge || 6,
+      scores.problemSolving || 8,
+      scores.communication || 7,
+      scores.execution || 6
+    ];
+    this.radarChartInstance.update();
+  }
+
+  triggerAutoSave(fieldKey, value) {
+    clearTimeout(this.saveTimeout);
+    const indicator = document.getElementById("autoSaveIndicator");
+    if (indicator) {
+      indicator.innerHTML = `<span class="text-amber-500 font-semibold animate-pulse">저장 중...</span>`;
+    }
+
+    this.saveTimeout = setTimeout(() => {
+      store.updateWorkbookField(fieldKey, value);
+      if (indicator) {
+        indicator.innerHTML = `<i data-lucide="check" class="w-3 h-3 text-emerald-500"></i><span>최근 저장: ${store.getFormattedNow()}</span>`;
+        if (window.lucide) window.lucide.createIcons();
+      }
+    }, 400);
+  }
+
+  updateGrowthVisual() {
+    const student = store.getCurrentUser();
+    this.renderHeader(student);
+  }
+
+  triggerFinalCelebration() {
+    this.triggerConfetti();
+    const student = store.getCurrentUser();
+    app.openCertificateModal(student);
+  }
+
+  triggerConfetti() {
+    if (window.confetti) {
+      window.confetti({
+        particleCount: 120,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    }
+  }
+
+  getIconEmoji(iconName) {
+    const map = {
+      "trending-up": "📈",
+      "flame": "🔥",
+      "lightbulb": "💡",
+      "users": "🤝",
+      "shield-check": "🛡️",
+      "zap": "⚡",
+      "compass": "🧭",
+      "smile": "😊",
+      "heart": "❤️",
+      "refresh-cw": "🔄"
+    };
+    return map[iconName] || "✨";
+  }
+}
+
+const workbookManager = new WorkbookManager();
+
+/**
+ * 공유 갤러리 모듈 (GalleryManager)
+ */
+class GalleryManager {
+  constructor() {
+    this.container = document.getElementById("galleryContent");
+    this.filterDept = "all";
+    this.searchQuery = "";
+    this.sortBy = "latest";
+
+    this.initEventListeners();
+  }
+
+  initEventListeners() {
+    window.addEventListener("seed_data_changed", () => {
+      if (app.currentTab === "gallery") {
+        this.render();
+      }
+    });
+  }
+
+  render() {
+    if (!this.container) return;
+
+    const allStudents = store.getAllStudents();
+    const publicStudents = allStudents.filter(s => s.isPublic);
+    const departments = ["all", ...new Set(allStudents.map(s => s.department))];
+
+    let filtered = publicStudents.filter(s => {
+      const matchDept = this.filterDept === "all" || s.department === this.filterDept;
+      const matchSearch = !this.searchQuery || 
+        s.name.includes(this.searchQuery) ||
+        s.department.includes(this.searchQuery) ||
+        (s.workbook?.s1_motto && s.workbook.s1_motto.includes(this.searchQuery)) ||
+        (s.workbook?.s2_interest && s.workbook.s2_interest.includes(this.searchQuery));
+      return matchDept && matchSearch;
+    });
+
+    if (this.sortBy === "likes") {
+      filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+    } else if (this.sortBy === "progress") {
+      filtered.sort((a, b) => b.progress - a.progress);
+    } else {
+      filtered.sort((a, b) => new Date(b.lastUpdated || 0) - new Date(a.lastUpdated || 0));
+    }
+
+    this.container.innerHTML = `
+      <div class="glass-card rounded-2xl p-6 mb-8 border border-slate-200/90 shadow-sm relative overflow-hidden bg-gradient-to-r from-teal-900 to-emerald-900 text-white">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <span class="px-3 py-1 bg-teal-500/30 border border-teal-300/40 text-teal-200 text-xs font-semibold rounded-full inline-block mb-2">
+              🌍 동료와 함께 성장하는 공간
+            </span>
+            <h3 class="text-2xl font-bold tracking-tight">SEED 공유 갤러리</h3>
+            <p class="text-teal-100 text-xs mt-1">공개 설정된 동료 학우들의 워크북을 둘러보고, 따뜻한 응원과 이모지 스티커를 남겨보세요.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="text-right">
+              <div class="text-xs text-teal-200 font-medium">현재 공개된 워크북</div>
+              <div class="text-2xl font-extrabold text-white">${publicStudents.length} <span class="text-xs font-normal text-teal-200">/ 전체 ${allStudents.length}명</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-3 items-center justify-between mb-6">
+        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <select id="galleryDeptFilter" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-700 outline-none focus:border-emerald-500">
+            ${departments.map(d => `<option value="${d}" ${this.filterDept === d ? 'selected' : ''}>${d === 'all' ? '전체 학과' : d}</option>`).join("")}
+          </select>
+
+          <select id="gallerySortFilter" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-700 outline-none focus:border-emerald-500">
+            <option value="latest" ${this.sortBy === 'latest' ? 'selected' : ''}>최신 업데이트순</option>
+            <option value="likes" ${this.sortBy === 'likes' ? 'selected' : ''}>응원(좋아요) 많은순</option>
+            <option value="progress" ${this.sortBy === 'progress' ? 'selected' : ''}>진행률 높은순</option>
+          </select>
+        </div>
+
+        <div class="relative w-full sm:w-64">
+          <input type="text" id="gallerySearchInput" value="${this.searchQuery}" placeholder="이름, 학과, 키워드 검색..."
+            class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 bg-white text-xs text-slate-700 focus:border-emerald-500 outline-none" />
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+        </div>
+      </div>
+
+      ${filtered.length === 0 ? `
+        <div class="glass-card rounded-2xl p-12 text-center border border-slate-200">
+          <span class="text-4xl block mb-2">🔍</span>
+          <p class="text-sm font-semibold text-slate-600">조건에 맞는 공개 워크북이 없습니다.</p>
+          <p class="text-xs text-slate-400 mt-1">필터 조건을 변경하거나 검색어를 초기화해보세요.</p>
+        </div>
+      ` : `
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          ${filtered.map(s => this.renderGalleryCard(s)).join("")}
+        </div>
+      `}
+    `;
+
+    this.bindEvents();
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  renderGalleryCard(student) {
+    const wb = student.workbook || {};
+    const motto = wb.s1_motto || "아직 슬로건이 작성되지 않았습니다.";
+    const interest = wb.s2_interest || "관심 분야를 탐색하고 있습니다.";
+    const smartGoal = wb.s3_smart_goal?.specific || "실행 목표를 수립하는 중입니다.";
+    const commentsCount = student.comments ? student.comments.length : 0;
+    const likesCount = student.likes || 0;
+
+    return `
+      <div class="glass-card rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between group">
+        <div>
+          <div class="flex items-center justify-between mb-3 pb-3 border-b border-slate-100">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-emerald-100 to-teal-100 flex items-center justify-center text-2xl font-bold border border-emerald-200">
+                ${student.avatar || '🌱'}
+              </div>
+              <div>
+                <h4 class="font-bold text-sm text-slate-800">${student.name}</h4>
+                <p class="text-[11px] text-slate-400">${student.department}</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${student.progress === 100 ? 'bg-purple-100 text-purple-700' : 'bg-emerald-100 text-emerald-700'}">
+                진행률 ${student.progress}%
+              </span>
+            </div>
+          </div>
+
+          <div class="space-y-3 my-2 text-xs">
+            <div class="bg-amber-50/70 p-2.5 rounded-xl border border-amber-200/60">
+              <div class="text-[10px] font-bold text-amber-800 mb-0.5">🌱 나의 슬로건</div>
+              <p class="text-slate-700 font-medium line-clamp-2 leading-relaxed">"${motto}"</p>
+            </div>
+
+            <div class="bg-blue-50/60 p-2.5 rounded-xl border border-blue-200/60">
+              <div class="text-[10px] font-bold text-blue-800 mb-0.5">🌿 탐색 주제 & 비전</div>
+              <p class="text-slate-700 line-clamp-2 leading-relaxed">${interest}</p>
+            </div>
+
+            <div class="bg-purple-50/60 p-2.5 rounded-xl border border-purple-200/60">
+              <div class="text-[10px] font-bold text-purple-800 mb-0.5">🎯 핵심 SMART 목표</div>
+              <p class="text-slate-700 line-clamp-2 leading-relaxed">${smartGoal}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <button type="button" data-like-btn="${student.id}" class="px-2.5 py-1 rounded-lg bg-pink-50 hover:bg-pink-100 text-pink-700 text-xs font-semibold flex items-center gap-1 transition">
+              <span>❤️</span>
+              <span>${likesCount}</span>
+            </button>
+            <span class="text-[11px] text-slate-400 flex items-center gap-1">
+              <i data-lucide="message-square" class="w-3 h-3"></i>
+              <span>${commentsCount}</span>
+            </span>
+          </div>
+
+          <button type="button" data-view-wb="${student.id}" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-medium transition flex items-center gap-1">
+            <span>워크북 전체 보기</span>
+            <i data-lucide="arrow-right" class="w-3 h-3"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  bindEvents() {
+    const deptSelect = document.getElementById("galleryDeptFilter");
+    if (deptSelect) {
+      deptSelect.addEventListener("change", (e) => {
+        this.filterDept = e.target.value;
+        this.render();
+      });
+    }
+
+    const sortSelect = document.getElementById("gallerySortFilter");
+    if (sortSelect) {
+      sortSelect.addEventListener("change", (e) => {
+        this.sortBy = e.target.value;
+        this.render();
+      });
+    }
+
+    const searchInput = document.getElementById("gallerySearchInput");
+    if (searchInput) {
+      searchInput.addEventListener("input", (e) => {
+        this.searchQuery = e.target.value.trim();
+        this.render();
+      });
+    }
+
+    this.container.querySelectorAll("[data-like-btn]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const id = e.currentTarget.getAttribute("data-like-btn");
+        store.addReaction(id, "❤️");
+        app.showToast("따뜻한 응원 하트를 보냈습니다! ❤️", "success");
+        this.render();
+      });
+    });
+
+    this.container.querySelectorAll("[data-view-wb]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const id = e.currentTarget.getAttribute("data-view-wb");
+        const targetStudent = store.getStudentById(id);
+        if (targetStudent) {
+          app.openStudentWorkbookModal(targetStudent);
+        }
+      });
+    });
+  }
+}
+
+const galleryManager = new GalleryManager();
+
+/**
+ * 관리자 대시보드 및 분석 모듈 (AdminManager)
+ */
+class AdminManager {
+  constructor() {
+    this.container = document.getElementById("adminContent");
+    this.activeAdminView = "overview";
+    this.selectedMatrixStage = 1;
+    this.selectedMatrixSection = "s1_motto";
+    this.chartInstances = {};
+
+    this.initEventListeners();
+  }
+
+  initEventListeners() {
+    window.addEventListener("seed_data_changed", () => {
+      if (app.currentTab === "admin") {
+        this.render();
+      }
+    });
+  }
+
+  render() {
+    if (!this.container) return;
+
+    const students = store.getAllStudents();
+    const stats = this.computeSummaryStats(students);
+
+    this.container.innerHTML = `
+      <div class="glass-card rounded-2xl p-6 mb-8 border border-slate-200/90 shadow-sm bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white relative overflow-hidden">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="px-2.5 py-0.5 bg-indigo-500/30 border border-indigo-400/40 text-indigo-200 text-xs font-semibold rounded-full">
+                👑 교수학습지원센터 관리자 전용
+              </span>
+              <span class="text-xs text-slate-400">실시간 데이터 연동</span>
+            </div>
+            <h3 class="text-2xl font-bold tracking-tight">SEED 프로그램 통합 관리 & 분석 대시보드</h3>
+            <p class="text-slate-300 text-xs mt-1">참여 학생들의 차시별 워크북 작성 현황을 모니터링하고 심층 분석 데이터를 확인합니다.</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 no-print">
+            <button id="adminExportCsvBtn" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>전체 데이터 엑셀(CSV) 다운로드</span>
+            </button>
+            <button id="adminResetDataBtn" class="px-3 py-2 bg-slate-800 hover:bg-red-700/80 text-slate-300 hover:text-white rounded-xl text-xs font-medium transition flex items-center gap-1">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+              <span>샘플 데이터 리셋</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="glass-card p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-xl font-bold">👥</div>
+          <div>
+            <div class="text-xs text-slate-500 font-medium">총 참여 학생</div>
+            <div class="text-2xl font-extrabold text-slate-800">${stats.totalStudents}명</div>
+            <div class="text-[11px] text-emerald-600 font-semibold mt-0.5">등록률 100%</div>
+          </div>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl font-bold">📈</div>
+          <div>
+            <div class="text-xs text-slate-500 font-medium">평균 작성 완료율</div>
+            <div class="text-2xl font-extrabold text-slate-800">${stats.avgProgress}%</div>
+            <div class="text-[11px] text-blue-600 font-semibold mt-0.5">${stats.completedCount}명 전 차시 완주</div>
+          </div>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl font-bold">🌍</div>
+          <div>
+            <div class="text-xs text-slate-500 font-medium">워크북 공개율</div>
+            <div class="text-2xl font-extrabold text-slate-800">${stats.publicRate}%</div>
+            <div class="text-[11px] text-slate-500 font-medium mt-0.5">${stats.publicCount}명 동료 공유 중</div>
+          </div>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl font-bold">💬</div>
+          <div>
+            <div class="text-xs text-slate-500 font-medium">동료 응원/피드백</div>
+            <div class="text-2xl font-extrabold text-slate-800">${stats.totalInteractions}건</div>
+            <div class="text-[11px] text-purple-600 font-semibold mt-0.5">상호 교류 활성화</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 border-b border-slate-200 pb-2 mb-6 no-print">
+        <button data-admin-subtab="overview" class="admin-tab-btn px-4 py-2 rounded-xl text-xs font-bold transition ${this.activeAdminView === 'overview' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'}">
+          📋 학생별 제출 현황
+        </button>
+        <button data-admin-subtab="matrix" class="admin-tab-btn px-4 py-2 rounded-xl text-xs font-bold transition ${this.activeAdminView === 'matrix' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'}">
+          🔍 차시별 / 문항별 모아보기
+        </button>
+        <button data-admin-subtab="analytics" class="admin-tab-btn px-4 py-2 rounded-xl text-xs font-bold transition ${this.activeAdminView === 'analytics' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'}">
+          📊 스마트 데이터 분석 & 리포트
+        </button>
+      </div>
+
+      <div id="adminSubViewContainer">
+        ${this.renderSubView(students, stats)}
+      </div>
+    `;
+
+    this.bindAdminEvents();
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  renderSubView(students, stats) {
+    if (this.activeAdminView === "matrix") {
+      return this.renderMatrixView(students);
+    } else if (this.activeAdminView === "analytics") {
+      return this.renderAnalyticsView(students, stats);
+    } else {
+      return this.renderStudentOverview(students);
+    }
+  }
+
+  renderStudentOverview(students) {
+    return `
+      <div class="glass-card rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+        <div class="p-4 bg-slate-50/80 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div>
+            <h4 class="font-bold text-sm text-slate-800">참여 학생 전체 목록 (${students.length}명)</h4>
+            <p class="text-xs text-slate-400">학생을 클릭하면 해당 학생의 전체 4개 차시 워크북 상세 내용을 열람할 수 있습니다.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-500 font-medium">정렬:</span>
+            <span class="text-xs bg-white px-2 py-1 rounded-md border border-slate-200 text-slate-700 font-bold">진행률 및 최신순</span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-700">
+            <thead class="bg-slate-100/90 text-slate-600 font-bold border-b border-slate-200">
+              <tr>
+                <th class="p-3.5">학생 정보</th>
+                <th class="p-3.5">학과</th>
+                <th class="p-3.5 text-center">공개 여부</th>
+                <th class="p-3.5 text-center">1차시(S)</th>
+                <th class="p-3.5 text-center">2차시(E)</th>
+                <th class="p-3.5 text-center">3차시(E)</th>
+                <th class="p-3.5 text-center">4차시(D)</th>
+                <th class="p-3.5 text-center">전체 진행률</th>
+                <th class="p-3.5 text-right">최근 활동</th>
+                <th class="p-3.5 text-center no-print">관리</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              ${students.map(s => {
+                const s1 = store.getStageCompletion(s, 1);
+                const s2 = store.getStageCompletion(s, 2);
+                const s3 = store.getStageCompletion(s, 3);
+                const s4 = store.getStageCompletion(s, 4);
+
+                return `
+                  <tr class="hover:bg-indigo-50/40 transition cursor-pointer" data-admin-open-student="${s.id}">
+                    <td class="p-3.5 font-semibold text-slate-900 flex items-center gap-2">
+                      <span class="text-lg">${s.avatar || '🌱'}</span>
+                      <div>
+                        <div>${s.name}</div>
+                        <div class="text-[10px] text-slate-400">${s.studentNumber}</div>
+                      </div>
+                    </td>
+                    <td class="p-3.5 text-slate-600">${s.department}</td>
+                    <td class="p-3.5 text-center">
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${s.isPublic ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}">
+                        ${s.isPublic ? '🌍 공개' : '🔒 비공개'}
+                      </span>
+                    </td>
+                    <td class="p-3.5 text-center">
+                      <span class="w-6 h-6 mx-auto rounded-full flex items-center justify-center font-bold text-xs ${s1 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400'}">
+                        ${s1 ? '✓' : '-'}
+                      </span>
+                    </td>
+                    <td class="p-3.5 text-center">
+                      <span class="w-6 h-6 mx-auto rounded-full flex items-center justify-center font-bold text-xs ${s2 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-400'}">
+                        ${s2 ? '✓' : '-'}
+                      </span>
+                    </td>
+                    <td class="p-3.5 text-center">
+                      <span class="w-6 h-6 mx-auto rounded-full flex items-center justify-center font-bold text-xs ${s3 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-400'}">
+                        ${s3 ? '✓' : '-'}
+                      </span>
+                    </td>
+                    <td class="p-3.5 text-center">
+                      <span class="w-6 h-6 mx-auto rounded-full flex items-center justify-center font-bold text-xs ${s4 ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-400'}">
+                        ${s4 ? '✓' : '-'}
+                      </span>
+                    </td>
+                    <td class="p-3.5 text-center">
+                      <div class="flex items-center justify-center gap-1.5">
+                        <div class="w-14 bg-slate-200 h-2 rounded-full overflow-hidden">
+                          <div class="bg-indigo-600 h-full rounded-full" style="width: ${s.progress}%"></div>
+                        </div>
+                        <span class="font-bold text-slate-800 text-[11px]">${s.progress}%</span>
+                      </div>
+                    </td>
+                    <td class="p-3.5 text-right text-slate-400 text-[11px]">${s.lastUpdated || '-'}</td>
+                    <td class="p-3.5 text-center no-print">
+                      <button type="button" class="px-2.5 py-1 bg-slate-100 hover:bg-indigo-600 hover:text-white rounded-lg text-[11px] font-bold text-slate-700 transition">
+                        열람
+                      </button>
+                    </td>
+                  </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  renderMatrixView(students) {
+    const stage = SEED_CONFIG.stages.find(s => s.id === this.selectedMatrixStage) || SEED_CONFIG.stages[0];
+    const section = stage.sections.find(sec => sec.id === this.selectedMatrixSection) || stage.sections[0];
+
+    return `
+      <div class="space-y-6">
+        <div class="glass-card p-4 rounded-2xl border border-slate-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-700">차시 선택:</span>
+            <div class="flex gap-1">
+              ${SEED_CONFIG.stages.map(st => `
+                <button type="button" data-matrix-stage="${st.id}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition ${this.selectedMatrixStage === st.id ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+                  ${st.code} (${st.id}차시)
+                </button>
+              `).join("")}
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 w-full md:w-auto">
+            <span class="text-xs font-bold text-slate-700 shrink-0">항목 선택:</span>
+            <select id="matrixSectionSelect" class="w-full md:w-80 px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-800 bg-white outline-none focus:border-indigo-500">
+              ${stage.sections.map(sec => `
+                <option value="${sec.id}" ${this.selectedMatrixSection === sec.id ? 'selected' : ''}>
+                  ${sec.title}
+                </option>
+              `).join("")}
+            </select>
+          </div>
+
+        </div>
+
+        <div class="p-4 rounded-xl bg-indigo-50/60 border border-indigo-200">
+          <div class="text-xs font-bold text-indigo-900 flex items-center gap-1.5 mb-1">
+            <span>📌 ${stage.title} > ${section.title}</span>
+          </div>
+          <p class="text-xs text-indigo-800">${section.desc}</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          ${students.map(s => {
+            const answer = this.extractStudentSectionAnswer(s, section);
+            return `
+              <div class="glass-card p-4 rounded-xl border border-slate-200/90 shadow-sm flex flex-col justify-between hover:border-indigo-300 transition">
+                <div>
+                  <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
+                    <div class="flex items-center gap-2">
+                      <span class="text-lg">${s.avatar || '🌱'}</span>
+                      <div>
+                        <div class="font-bold text-xs text-slate-800">${s.name}</div>
+                        <div class="text-[10px] text-slate-400">${s.department} · ${s.studentNumber}</div>
+                      </div>
+                    </div>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded ${s.isPublic ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}">
+                      ${s.isPublic ? '공개' : '비공개'}
+                    </span>
+                  </div>
+
+                  <div class="text-xs text-slate-700 leading-relaxed py-1 min-h-[80px]">
+                    ${answer}
+                  </div>
+                </div>
+
+                <div class="pt-2 mt-2 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-400">
+                  <span>작성: ${s.lastUpdated || '-'}</span>
+                  <button type="button" data-admin-open-student="${s.id}" class="text-indigo-600 font-bold hover:underline">
+                    전체보기
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  extractStudentSectionAnswer(student, section) {
+    const wb = student.workbook || {};
+    const val = wb[section.id];
+
+    if (!val || (Array.isArray(val) && val.length === 0) || (typeof val === "object" && Object.keys(val).length === 0)) {
+      return `<span class="text-slate-400 italic">아직 작성되지 않았습니다.</span>`;
+    }
+
+    if (section.type === "card-select") {
+      const selectedOpts = section.options.filter(o => val.includes(o.id));
+      return `
+        <div class="flex flex-wrap gap-1.5">
+          ${selectedOpts.map(o => `
+            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md font-semibold text-[11px] flex items-center gap-1">
+              <span>${o.label}</span>
+            </span>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    if (section.type === "radar-slider") {
+      return `
+        <div class="space-y-1">
+          <div class="flex justify-between text-[11px]"><span>자기이해: <b>${val.selfAwareness || 0}점</b></span><span>도전의식: <b>${val.challenge || 0}점</b></span></div>
+          <div class="flex justify-between text-[11px]"><span>문제해결: <b>${val.problemSolving || 0}점</b></span><span>소통협업: <b>${val.communication || 0}점</b></span></div>
+          <div class="text-[11px]">실행력: <b>${val.execution || 0}점</b></div>
+        </div>
+      `;
+    }
+
+    if (section.type === "sticky-canvas") {
+      return `
+        <div class="space-y-1.5">
+          ${val.map(item => `
+            <div class="p-1.5 rounded bg-amber-50 border border-amber-200 text-[11px] text-amber-900">
+              <span class="font-bold text-[10px] text-amber-700">#${item.tag}</span> ${item.text}
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    if (section.type === "smart-grid") {
+      return `
+        <div class="space-y-1 text-[11px]">
+          <div><b class="text-slate-900">S:</b> ${val.specific || '-'}</div>
+          <div><b class="text-slate-900">M:</b> ${val.measurable || '-'}</div>
+          <div><b class="text-slate-900">A:</b> ${val.actionStep || '-'}</div>
+        </div>
+      `;
+    }
+
+    if (section.type === "roadmap-builder") {
+      return `
+        <div class="space-y-1 text-[11px]">
+          ${val.map(step => `
+            <div class="flex items-center gap-1">
+              <span>${step.done ? '✅' : '⏳'}</span>
+              <span class="font-bold">${step.period}:</span>
+              <span class="${step.done ? 'line-through text-slate-400' : ''}">${step.title}</span>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    if (section.type === "kpt-grid") {
+      return `
+        <div class="space-y-1 text-[11px]">
+          <div><b class="text-emerald-700">Keep:</b> ${val.keep || '-'}</div>
+          <div><b class="text-rose-700">Problem:</b> ${val.problem || '-'}</div>
+          <div><b class="text-blue-700">Try:</b> ${val.try || '-'}</div>
+        </div>
+      `;
+    }
+
+    if (section.type === "pledge-badge") {
+      return val ? `<span class="text-purple-700 font-bold">✓ 성장 실천 서약 완료</span>` : `<span class="text-slate-400">서약 미완료</span>`;
+    }
+
+    return `<p class="whitespace-pre-line">${val}</p>`;
+  }
+
+  renderAnalyticsView(students, stats) {
+    const keywordData = this.analyzeKeywords(students);
+    const valueStats = this.analyzeCoreValues(students);
+    const competencyAvg = this.analyzeCompetencies(students);
+
+    return `
+      <div class="space-y-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-6 glass-card p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <h4 class="text-sm font-bold text-slate-800 mb-1">📊 차시별 참여 및 작성 완료율</h4>
+            <p class="text-xs text-slate-400 mb-4">각 차시별 필수 미션 완료 학생 비율 현황입니다.</p>
+            <div class="h-64 relative">
+              <canvas id="adminStageCompletionChart"></canvas>
+            </div>
+          </div>
+
+          <div class="lg:col-span-6 glass-card p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <h4 class="text-sm font-bold text-slate-800 mb-1">🕸️ 참여자 5대 핵심 역량 평균 진단치</h4>
+            <p class="text-xs text-slate-400 mb-4">학생들이 자가 진단한 5대 핵심 역량의 종합 평균 점수입니다.</p>
+            <div class="h-64 relative">
+              <canvas id="adminCompetencyRadarChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-5 glass-card p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <h4 class="text-sm font-bold text-slate-800 mb-1">🏆 학생들이 선택한 핵심 가치관 TOP 5</h4>
+            <p class="text-xs text-slate-400 mb-4">1차시 카드 소팅에서 가장 선호된 가치관 분포입니다.</p>
+            <div class="space-y-3">
+              ${valueStats.slice(0, 5).map((v, i) => `
+                <div>
+                  <div class="flex justify-between text-xs font-bold text-slate-700 mb-1">
+                    <span>${i + 1}위. ${v.label}</span>
+                    <span class="text-indigo-600">${v.count}명 (${v.percentage}%)</span>
+                  </div>
+                  <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div class="bg-indigo-600 h-full rounded-full" style="width: ${v.percentage}%"></div>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 glass-card p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <h4 class="text-sm font-bold text-slate-800 mb-1">☁️ 성찰 워드 클라우드 & 주요 빈출 키워드</h4>
+            <p class="text-xs text-slate-400 mb-4">학생들의 슬로건, 성찰문, 비전 캔버스에서 추출한 핵심 키워드입니다.</p>
+            
+            <div class="flex flex-wrap gap-2.5 p-4 bg-slate-50/80 rounded-xl min-h-[160px] items-center justify-center">
+              ${keywordData.map((kw, i) => {
+                const sizeClasses = [
+                  "text-lg font-extrabold bg-emerald-600 text-white shadow-md px-3.5 py-1.5",
+                  "text-base font-bold bg-indigo-600 text-white shadow-sm px-3 py-1.5",
+                  "text-sm font-bold bg-blue-100 text-blue-800 border border-blue-200 px-2.5 py-1",
+                  "text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-200 px-2 py-0.5",
+                  "text-xs bg-slate-200 text-slate-700 px-2 py-0.5"
+                ];
+                const cls = sizeClasses[Math.min(i, 4)];
+                return `
+                  <span class="word-tag cursor-default ${cls}">
+                    #${kw.word} (${kw.count})
+                  </span>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl border border-indigo-200/90 bg-gradient-to-br from-indigo-50/70 via-white to-purple-50/70 shadow-sm">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="p-2 rounded-xl bg-indigo-600 text-white text-lg">💡</span>
+            <div>
+              <h4 class="text-base font-bold text-indigo-950">교수학습지원센터를 위한 SEED 성과 종합 인사이트</h4>
+              <p class="text-xs text-indigo-700">참여자들의 작성 데이터를 종합 분석하여 도출된 교육적 시사점입니다.</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 text-xs">
+            <div class="p-4 rounded-xl bg-white/90 border border-indigo-100 shadow-sm space-y-2">
+              <div class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                <span class="text-emerald-600">🌟</span> 주요 강점 및 성향
+              </div>
+              <p class="text-slate-600 leading-relaxed">
+                학생들은 <b>'지속적 성장'</b>과 <b>'창의/열정'</b>을 최우선 가치로 꼽았으며, 논리적 문제 해결력(평균 7.8점)에 높은 자신감을 보이고 있습니다.
+              </p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-white/90 border border-indigo-100 shadow-sm space-y-2">
+              <div class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                <span class="text-amber-600">⚠️</span> 주요 학습 장애 요인
+              </div>
+              <p class="text-slate-600 leading-relaxed">
+                If-Then 및 성찰에서 <b>'일정 지연 및 시간 관리'</b>, <b>'완벽주의로 인한 실행 망설임'</b>이 주요 극복 과제로 도출되었습니다.
+              </p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-white/90 border border-indigo-100 shadow-sm space-y-2">
+              <div class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                <span class="text-indigo-600">🎯</span> 센터 후속 지원 제언
+              </div>
+              <p class="text-slate-600 leading-relaxed">
+                차기 프로그램에서는 <b>'시간 관리 버퍼 전략 특강'</b> 및 <b>'소그룹 피어 피드백 워크숍'</b>을 연계 제공하면 학생들의 실행 완주율을 더욱 높일 수 있습니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  bindAdminEvents() {
+    this.container.querySelectorAll("[data-admin-subtab]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        this.activeAdminView = e.currentTarget.getAttribute("data-admin-subtab");
+        this.render();
+      });
+    });
+
+    this.container.querySelectorAll("[data-matrix-stage]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        this.selectedMatrixStage = parseInt(e.currentTarget.getAttribute("data-matrix-stage"), 10);
+        const stage = SEED_CONFIG.stages.find(s => s.id === this.selectedMatrixStage);
+        if (stage && stage.sections.length > 0) {
+          this.selectedMatrixSection = stage.sections[0].id;
+        }
+        this.render();
+      });
+    });
+
+    const secSelect = document.getElementById("matrixSectionSelect");
+    if (secSelect) {
+      secSelect.addEventListener("change", (e) => {
+        this.selectedMatrixSection = e.target.value;
+        this.render();
+      });
+    }
+
+    this.container.querySelectorAll("[data-admin-open-student]").forEach(elem => {
+      elem.addEventListener("click", (e) => {
+        const studentId = elem.getAttribute("data-admin-open-student");
+        const student = store.getStudentById(studentId);
+        if (student) {
+          app.openStudentWorkbookModal(student);
+        }
+      });
+    });
+
+    const exportBtn = document.getElementById("adminExportCsvBtn");
+    if (exportBtn) {
+      exportBtn.addEventListener("click", () => this.exportCsvData());
+    }
+
+    const resetBtn = document.getElementById("adminResetDataBtn");
+    if (resetBtn) {
+      resetBtn.addEventListener("click", () => {
+        if (confirm("정말로 모든 데이터를 초기 샘플 데이터로 복원하시겠습니까?")) {
+          store.resetToSampleData();
+          app.showToast("초기 샘플 데이터로 복구되었습니다.", "info");
+          this.render();
+        }
+      });
+    }
+
+    if (this.activeAdminView === "analytics") {
+      this.initAnalyticsCharts();
+    }
+  }
+
+  computeSummaryStats(students) {
+    const total = students.length || 1;
+    const completed = students.filter(s => s.progress === 100).length;
+    const publicCnt = students.filter(s => s.isPublic).length;
+    const avgProg = Math.round(students.reduce((acc, s) => acc + (s.progress || 0), 0) / total);
+    const totalInteractions = students.reduce((acc, s) => acc + (s.likes || 0) + (s.comments?.length || 0), 0);
+
+    return {
+      totalStudents: total,
+      completedCount: completed,
+      publicCount: publicCnt,
+      avgProgress: avgProg,
+      publicRate: Math.round((publicCnt / total) * 100),
+      totalInteractions: totalInteractions
+    };
+  }
+
+  analyzeKeywords(students) {
+    const wordCounts = {};
+    const stopWords = ["나는", "내가", "통해", "위해", "대한", "있는", "하고", "수", "점", "것", "및", "이", "그", "저"];
+
+    students.forEach(s => {
+      const wb = s.workbook || {};
+      const texts = [
+        wb.s1_motto,
+        wb.s1_reflection,
+        wb.s2_interest,
+        wb.s2_role_model,
+        wb.s3_obstacle_plan,
+        wb.s4_peer_message,
+        ...(wb.s2_vision_board || []).map(v => v.text)
+      ].join(" ");
+
+      const words = texts.match(/[가-힣]{2,}/g) || [];
+      words.forEach(w => {
+        if (!stopWords.includes(w)) {
+          wordCounts[w] = (wordCounts[w] || 0) + 1;
+        }
+      });
+    });
+
+    const sorted = Object.entries(wordCounts)
+      .map(([word, count]) => ({ word, count }))
+      .sort((a, b) => b.count - a.count);
+
+    return sorted.slice(0, 15);
+  }
+
+  analyzeCoreValues(students) {
+    const valueCounts = {};
+    const valueMap = {
+      v_growth: "지속적 성장",
+      v_passion: "열정과 몰입",
+      v_creativity: "창의와 혁신",
+      v_cooperation: "협력과 배려",
+      v_sincerity: "성실과 책임",
+      v_challenge: "도전과 용기",
+      v_autonomy: "자율과 독립",
+      v_positivity: "긍정과 유연성",
+      v_empathy: "공감과 소통",
+      v_resilience: "회복탄력성"
+    };
+
+    Object.keys(valueMap).forEach(k => valueCounts[k] = 0);
+
+    students.forEach(s => {
+      const vals = s.workbook?.s1_values || [];
+      vals.forEach(v => {
+        if (valueCounts[v] !== undefined) valueCounts[v]++;
+      });
+    });
+
+    const total = students.length || 1;
+    return Object.entries(valueCounts)
+      .map(([k, count]) => ({
+        key: k,
+        label: valueMap[k],
+        count: count,
+        percentage: Math.round((count / total) * 100)
+      }))
+      .sort((a, b) => b.count - a.count);
+  }
+
+  analyzeCompetencies(students) {
+    const total = students.length || 1;
+    const totals = { selfAwareness: 0, challenge: 0, problemSolving: 0, communication: 0, execution: 0 };
+
+    students.forEach(s => {
+      const r = s.workbook?.s1_radar || { selfAwareness: 7, challenge: 6, problemSolving: 8, communication: 7, execution: 6 };
+      totals.selfAwareness += r.selfAwareness || 0;
+      totals.challenge += r.challenge || 0;
+      totals.problemSolving += r.problemSolving || 0;
+      totals.communication += r.communication || 0;
+      totals.execution += r.execution || 0;
+    });
+
+    return [
+      Number((totals.selfAwareness / total).toFixed(1)),
+      Number((totals.challenge / total).toFixed(1)),
+      Number((totals.problemSolving / total).toFixed(1)),
+      Number((totals.communication / total).toFixed(1)),
+      Number((totals.execution / total).toFixed(1))
+    ];
+  }
+
+  initAnalyticsCharts() {
+    const students = store.getAllStudents();
+
+    const stageCanvas = document.getElementById("adminStageCompletionChart");
+    if (stageCanvas) {
+      if (this.chartInstances.stage) this.chartInstances.stage.destroy();
+
+      const stageCounts = [1, 2, 3, 4].map(id => {
+        return Math.round((students.filter(s => store.getStageCompletion(s, id)).length / students.length) * 100);
+      });
+
+      this.chartInstances.stage = new Chart(stageCanvas.getContext("2d"), {
+        type: "bar",
+        data: {
+          labels: ["1차시 (S)", "2차시 (E)", "3차시 (E)", "4차시 (D)"],
+          datasets: [{
+            label: "작성 완료율 (%)",
+            data: stageCounts,
+            backgroundColor: ["#10b981", "#3b82f6", "#f59e0b", "#8b5cf6"],
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { min: 0, max: 100, ticks: { callback: v => v + "%" } }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    const radarCanvas = document.getElementById("adminCompetencyRadarChart");
+    if (radarCanvas) {
+      if (this.chartInstances.radar) this.chartInstances.radar.destroy();
+
+      const avgScores = this.analyzeCompetencies(students);
+
+      this.chartInstances.radar = new Chart(radarCanvas.getContext("2d"), {
+        type: "radar",
+        data: {
+          labels: ["자기이해", "도전의식", "문제해결", "소통협업", "실행력"],
+          datasets: [{
+            label: "참여자 전체 평균",
+            data: avgScores,
+            backgroundColor: "rgba(99, 102, 241, 0.25)",
+            borderColor: "#6366f1",
+            borderWidth: 2,
+            pointBackgroundColor: "#4338ca",
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            r: {
+              min: 0,
+              max: 10,
+              ticks: { stepSize: 2 }
+            }
+          }
+        }
+      });
+    }
+  }
+
+  exportCsvData() {
+    const students = store.getAllStudents();
+    const headers = [
+      "학번", "이름", "학과", "공개여부", "전체진행률", "1차시_슬로건", "1차시_성찰", "2차시_관심주제", "2차시_롤모델", "3차시_SMART목표", "3차시_극복계획", "4차시_KPT_Keep", "4차시_동료응원메시지", "최근수정일"
+    ];
+
+    const rows = students.map(s => {
+      const wb = s.workbook || {};
+      return [
+        `"${s.studentNumber || ''}"`,
+        `"${s.name || ''}"`,
+        `"${s.department || ''}"`,
+        `"${s.isPublic ? '공개' : '비공개'}"`,
+        `"${s.progress}%"`,
+        `"${(wb.s1_motto || '').replace(/"/g, '""')}"`,
+        `"${(wb.s1_reflection || '').replace(/"/g, '""')}"`,
+        `"${(wb.s2_interest || '').replace(/"/g, '""')}"`,
+        `"${(wb.s2_role_model || '').replace(/"/g, '""')}"`,
+        `"${(wb.s3_smart_goal?.specific || '').replace(/"/g, '""')}"`,
+        `"${(wb.s3_obstacle_plan || '').replace(/"/g, '""')}"`,
+        `"${(wb.s4_kpt_review?.keep || '').replace(/"/g, '""')}"`,
+        `"${(wb.s4_peer_message || '').replace(/"/g, '""')}"`,
+        `"${s.lastUpdated || ''}"`
+      ].join(",");
+    });
+
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `SEED_프로그램_참여자_워크북_종합데이터_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    app.showToast("전체 데이터가 CSV 파일로 다운로드되었습니다.", "success");
+  }
+}
+
+const adminManager = new AdminManager();
+
+/**
+ * 앱 메인 컨트롤러 (AppController)
+ */
+class AppController {
+  constructor() {
+    this.currentTab = "workbook";
+    this.init();
+  }
+
+  init() {
+    this.bindNavigation();
+    this.bindHeaderActions();
+    this.switchTab("workbook");
+    this.updateUserBadge();
+
+    window.addEventListener("seed_user_changed", () => this.updateUserBadge());
+  }
+
+  switchTab(tabId) {
+    this.currentTab = tabId;
+
+    document.querySelectorAll(".main-tab-btn").forEach(btn => {
+      const target = btn.getAttribute("data-tab-target");
+      if (target === tabId) {
+        btn.classList.add("tab-active", "text-emerald-600");
+        btn.classList.remove("text-slate-600");
+      } else {
+        btn.classList.remove("tab-active", "text-emerald-600");
+        btn.classList.add("text-slate-600");
+      }
+    });
+
+    const views = {
+      workbook: document.getElementById("workbookView"),
+      gallery: document.getElementById("galleryView"),
+      admin: document.getElementById("adminView")
+    };
+
+    Object.keys(views).forEach(k => {
+      if (views[k]) {
+        if (k === tabId) {
+          views[k].classList.remove("hidden");
+        } else {
+          views[k].classList.add("hidden");
+        }
+      }
+    });
+
+    if (tabId === "workbook") {
+      workbookManager.render();
+    } else if (tabId === "gallery") {
+      galleryManager.render();
+    } else if (tabId === "admin") {
+      adminManager.render();
+    }
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  bindNavigation() {
+    document.querySelectorAll(".main-tab-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const tab = e.currentTarget.getAttribute("data-tab-target");
+        this.switchTab(tab);
+      });
+    });
+  }
+
+  bindHeaderActions() {
+    const switchUserBtn = document.getElementById("switchUserBtn");
+    if (switchUserBtn) {
+      switchUserBtn.addEventListener("click", () => this.openUserSwitchModal());
+    }
+  }
+
+  updateUserBadge() {
+    const student = store.getCurrentUser();
+    const badgeName = document.getElementById("currentUserName");
+    const badgeAvatar = document.getElementById("currentUserAvatar");
+    const badgeDept = document.getElementById("currentUserDept");
+
+    if (student) {
+      if (badgeName) badgeName.innerText = student.name;
+      if (badgeAvatar) badgeAvatar.innerText = student.avatar || "🌱";
+      if (badgeDept) badgeDept.innerText = `${student.studentNumber} · ${student.department}`;
+    }
+  }
+
+  openUserSwitchModal() {
+    const students = store.getAllStudents();
+    const current = store.getCurrentUser();
+
+    const modalHtml = `
+      <div id="userSwitchModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm modal-overlay animate-fadeIn">
+        <div class="glass-card rounded-2xl p-6 max-w-md w-full border border-slate-200 shadow-2xl bg-white space-y-4">
+          <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+            <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
+              <span>👤</span> 참여 학생 전환 (테스트/체험)
+            </h3>
+            <button onclick="app.closeModal('userSwitchModal')" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+          </div>
+
+          <p class="text-xs text-slate-500">다른 학생의 계정으로 전환하여 작성 상태 및 뷰를 체험할 수 있습니다.</p>
+
+          <div class="space-y-2 max-h-64 overflow-y-auto pr-1">
+            ${students.map(s => `
+              <div onclick="app.selectUser('${s.id}')" class="p-3 rounded-xl border transition cursor-pointer flex items-center justify-between ${s.id === current.id ? 'border-emerald-500 bg-emerald-50/70 shadow-sm' : 'border-slate-200 hover:bg-slate-50'}">
+                <div class="flex items-center gap-3">
+                  <span class="text-2xl">${s.avatar || '🌱'}</span>
+                  <div>
+                    <div class="font-bold text-xs text-slate-800">${s.name} <span class="text-[10px] text-slate-400">(${s.studentNumber})</span></div>
+                    <div class="text-[11px] text-slate-500">${s.department} · 진행률 ${s.progress}%</div>
+                  </div>
+                </div>
+                ${s.id === current.id ? '<span class="text-emerald-600 text-xs font-bold">현재 선택됨</span>' : '<span class="text-slate-400 text-xs">선택</span>'}
+              </div>
+            `).join("")}
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex justify-between">
+            <button onclick="app.closeModal('userSwitchModal'); app.openNewUserModal();" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">
+              + 새 참여자 등록
+            </button>
+            <button onclick="app.closeModal('userSwitchModal')" class="px-4 py-2 bg-slate-800 text-white text-xs font-bold rounded-xl">
+              닫기
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    this.appendModal(modalHtml);
+  }
+
+  selectUser(studentId) {
+    store.setCurrentUser(studentId);
+    this.closeModal("userSwitchModal");
+    this.showToast("참여자가 전환되었습니다.", "info");
+    this.switchTab(this.currentTab);
+  }
+
+  openNewUserModal() {
+    const modalHtml = `
+      <div id="newUserModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm modal-overlay animate-fadeIn">
+        <div class="glass-card rounded-2xl p-6 max-w-md w-full border border-slate-200 shadow-2xl bg-white space-y-4">
+          <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+            <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
+              <span>🌱</span> 신규 SEED 참여자 등록
+            </h3>
+            <button onclick="app.closeModal('newUserModal')" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+          </div>
+
+          <form id="newUserForm" onsubmit="event.preventDefault(); app.handleCreateUser();" class="space-y-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">이름</label>
+              <input type="text" id="newUserName" required placeholder="예: 홍길동" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-emerald-500" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">학번</label>
+              <input type="text" id="newUserNumber" required placeholder="예: 20261001" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-emerald-500" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">학과</label>
+              <input type="text" id="newUserDept" required placeholder="예: 미디어커뮤니케이션학과" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-emerald-500" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">나의 캐릭터 아이콘</label>
+              <div class="flex gap-2 text-xl" id="avatarSelector">
+                ${["🌱", "👩‍🎓", "👨‍🎓", "👩‍💻", "🚀", "💡", "🎨", "🩺", "📈"].map((emoji, i) => `
+                  <button type="button" onclick="app.selectAvatar(this, '${emoji}')" class="avatar-btn p-1.5 rounded-lg border ${i === 0 ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200'}">${emoji}</button>
+                `).join("")}
+              </div>
+              <input type="hidden" id="selectedAvatar" value="🌱" />
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+              <button type="button" onclick="app.closeModal('newUserModal')" class="px-4 py-2 bg-slate-100 text-slate-600 text-xs font-bold rounded-xl">취소</button>
+              <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm">등록 및 시작</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    this.appendModal(modalHtml);
+  }
+
+  selectAvatar(btn, emoji) {
+    document.querySelectorAll(".avatar-btn").forEach(b => {
+      b.classList.remove("border-emerald-500", "bg-emerald-50");
+      b.classList.add("border-slate-200");
+    });
+    btn.classList.add("border-emerald-500", "bg-emerald-50");
+    document.getElementById("selectedAvatar").value = emoji;
+  }
+
+  handleCreateUser() {
+    const name = document.getElementById("newUserName").value.trim();
+    const number = document.getElementById("newUserNumber").value.trim();
+    const dept = document.getElementById("newUserDept").value.trim();
+    const avatar = document.getElementById("selectedAvatar").value;
+
+    if (name && number && dept) {
+      store.createNewStudent(name, number, dept, avatar);
+      this.closeModal("newUserModal");
+      this.showToast(`${name}님 환영합니다! 워크북 작성을 시작해보세요.`, "success");
+      this.switchTab("workbook");
+    }
+  }
+
+  openStudentWorkbookModal(student) {
+    const wb = student.workbook || {};
+    const comments = student.comments || [];
+
+    const modalHtml = `
+      <div id="studentDetailModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm modal-overlay animate-fadeIn overflow-y-auto">
+        <div class="glass-card rounded-2xl max-w-3xl w-full border border-slate-200 shadow-2xl bg-white my-8 max-h-[90vh] flex flex-col">
+          
+          <div class="p-6 bg-slate-900 text-white rounded-t-2xl flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-400 to-teal-500 flex items-center justify-center text-2xl font-bold">
+                ${student.avatar || '🌱'}
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="font-extrabold text-lg">${student.name} 학우의 SEED 워크북</h3>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold ${student.isPublic ? 'bg-emerald-500/30 text-emerald-300 border border-emerald-400/30' : 'bg-slate-700 text-slate-300'}">
+                    ${student.isPublic ? '🌍 공개' : '🔒 비공개'}
+                  </span>
+                </div>
+                <p class="text-xs text-slate-400">${student.studentNumber} · ${student.department} · 진행률 ${student.progress}%</p>
+              </div>
+            </div>
+            <button onclick="app.closeModal('studentDetailModal')" class="text-slate-400 hover:text-white text-xl">✕</button>
+          </div>
+
+          <div class="p-6 overflow-y-auto space-y-6 flex-1 text-xs text-slate-700">
+            
+            <div class="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200/80 space-y-2">
+              <h4 class="font-bold text-sm text-emerald-900 flex items-center gap-1.5">
+                <span>🌱</span> 1차시: Self-Discovery (자기발견)
+              </h4>
+              <div><b>나의 슬로건:</b> "${wb.s1_motto || '미작성'}"</div>
+              <div><b>핵심 가치관:</b> ${(wb.s1_values || []).map(v => `<span class="px-1.5 py-0.5 bg-emerald-200 text-emerald-800 rounded font-semibold text-[10px] mr-1">${v}</span>`).join('') || '선택 없음'}</div>
+              <div><b>심층 성찰:</b> <p class="text-slate-600 mt-1 whitespace-pre-line">${wb.s1_reflection || '미작성'}</p></div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-blue-50/60 border border-blue-200/80 space-y-2">
+              <h4 class="font-bold text-sm text-blue-900 flex items-center gap-1.5">
+                <span>🌿</span> 2차시: Exploration & Empathy (탐색과 공감)
+              </h4>
+              <div><b>관심 탐색 주제:</b> ${wb.s2_interest || '미작성'}</div>
+              <div><b>비전 캔버스 메모:</b></div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+                ${(wb.s2_vision_board || []).map(note => `
+                  <div class="p-2 bg-white rounded-lg border border-blue-200 text-[11px] shadow-2xs">
+                    <span class="text-[10px] font-bold text-blue-600">#${note.tag}</span> ${note.text}
+                  </div>
+                `).join('') || '<div class="text-slate-400">메모 없음</div>'}
+              </div>
+              <div><b>롤모델 포인트:</b> <p class="text-slate-600 mt-1 whitespace-pre-line">${wb.s2_role_model || '미작성'}</p></div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-amber-50/60 border border-amber-200/80 space-y-2">
+              <h4 class="font-bold text-sm text-amber-900 flex items-center gap-1.5">
+                <span>🌸</span> 3차시: Experience & Action (실행과 도전)
+              </h4>
+              <div><b>SMART 목표:</b> ${wb.s3_smart_goal?.specific || '미작성'} (측정: ${wb.s3_smart_goal?.measurable || '-'})</div>
+              <div><b>액션 로드맵:</b></div>
+              <div class="space-y-1">
+                ${(wb.s3_action_roadmap || []).map(r => `
+                  <div class="text-[11px] flex items-center gap-1">
+                    <span>${r.done ? '✅' : '⏳'}</span> <b>${r.period}:</b> ${r.title}
+                  </div>
+                `).join('') || '로드맵 없음'}
+              </div>
+              <div><b>If-Then 극복전략:</b> <p class="text-slate-600 mt-1 whitespace-pre-line">${wb.s3_obstacle_plan || '미작성'}</p></div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-purple-50/60 border border-purple-200/80 space-y-2">
+              <h4 class="font-bold text-sm text-purple-900 flex items-center gap-1.5">
+                <span>🍎</span> 4차시: Development & Dedication (성장과 나눔)
+              </h4>
+              <div><b>KPT 회고:</b> Keep(${wb.s4_kpt_review?.keep || '-'}), Problem(${wb.s4_kpt_review?.problem || '-'}), Try(${wb.s4_kpt_review?.try || '-'})</div>
+              <div><b>동료 및 나에게 전하는 응원:</b> <p class="text-slate-600 mt-1 whitespace-pre-line">${wb.s4_peer_message || '미작성'}</p></div>
+              <div><b>서약 상태:</b> ${wb.s4_pledge ? '<span class="text-emerald-600 font-bold">✓ SEED 성장 서약 완료</span>' : '<span class="text-slate-400">서약 미완료</span>'}</div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-200 space-y-3">
+              <div class="flex justify-between items-center">
+                <h5 class="font-bold text-xs text-slate-800 flex items-center gap-1">
+                  <span>💬</span> 동료들의 응원 한마디 (${comments.length})
+                </h5>
+                <div class="flex items-center gap-1">
+                  <button onclick="app.sendReactionModal('${student.id}', '❤️')" class="px-2 py-1 bg-pink-50 hover:bg-pink-100 text-pink-600 rounded text-xs">❤️ 멋져요</button>
+                  <button onclick="app.sendReactionModal('${student.id}', '👏')" class="px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded text-xs">👏 최고</button>
+                  <button onclick="app.sendReactionModal('${student.id}', '💡')" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded text-xs">💡 영감</button>
+                </div>
+              </div>
+
+              <div class="flex gap-2">
+                <input type="text" id="modalCommentInput" placeholder="따뜻한 격려와 피드백을 남겨주세요..."
+                  class="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-emerald-500" />
+                <button onclick="app.submitModalComment('${student.id}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">
+                  등록
+                </button>
+              </div>
+
+              <div class="space-y-2 max-h-40 overflow-y-auto">
+                ${comments.map(c => `
+                  <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-[11px]">
+                    <div class="flex justify-between font-bold text-slate-700 mb-0.5">
+                      <span>${c.author}</span>
+                      <span class="text-slate-400 font-normal text-[10px]">${c.time}</span>
+                    </div>
+                    <p class="text-slate-600">${c.text}</p>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+          </div>
+
+          <div class="p-4 bg-slate-50 border-t border-slate-200 rounded-b-2xl flex justify-end gap-2">
+            <button onclick="app.closeModal('studentDetailModal')" class="px-5 py-2 bg-slate-800 text-white text-xs font-bold rounded-xl">
+              닫기
+            </button>
+          </div>
+
+        </div>
+      </div>
+    `;
+
+    this.appendModal(modalHtml);
+  }
+
+  sendReactionModal(studentId, emoji) {
+    store.addReaction(studentId, emoji);
+    this.showToast(`따뜻한 응원(${emoji})을 보냈습니다!`, "success");
+    const updated = store.getStudentById(studentId);
+    this.closeModal("studentDetailModal");
+    this.openStudentWorkbookModal(updated);
+  }
+
+  submitModalComment(studentId) {
+    const input = document.getElementById("modalCommentInput");
+    if (!input || !input.value.trim()) return;
+
+    store.addComment(studentId, input.value.trim());
+    this.showToast("응원 댓글이 등록되었습니다.", "success");
+    const updated = store.getStudentById(studentId);
+    this.closeModal("studentDetailModal");
+    this.openStudentWorkbookModal(updated);
+  }
+
+  openCertificateModal(student) {
+    const modalHtml = `
+      <div id="certificateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md modal-overlay animate-fadeIn">
+        <div class="glass-card rounded-3xl max-w-lg w-full border-2 border-amber-300 shadow-2xl bg-gradient-to-b from-amber-50 via-white to-amber-50 p-8 text-center space-y-6 relative overflow-hidden">
+          
+          <div class="text-5xl growth-stage-anim">🏆🌱</div>
+          
+          <div>
+            <span class="text-xs font-extrabold px-3 py-1 bg-amber-200 text-amber-900 rounded-full border border-amber-300 inline-block mb-2">
+              교수학습지원센터 (CTL) 공인 인증
+            </span>
+            <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">SEED 역량 강화 프로그램 수료 인증</h2>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-white/90 border border-amber-200 text-xs text-slate-700 space-y-2 shadow-inner">
+            <p class="text-sm font-bold text-slate-800">${student.department} <b>${student.name}</b> (${student.studentNumber})</p>
+            <p class="text-slate-600 leading-relaxed">
+              위 사람은 SEED 프로그램의 4개 전 차시(Self-discovery, Exploration, Experience, Development) 워크북을 성실히 완주하고 나만의 성장 씨앗을 꽃피웠으므로 이 인증서를 수여합니다.
+            </p>
+            <div class="pt-3 font-semibold text-slate-500 text-[11px]">
+              발급일자: 2026년 8월 19일 · SEED No. ${student.studentNumber}-CTL
+            </div>
+          </div>
+
+          <div class="flex justify-center gap-3">
+            <button onclick="window.print();" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5">
+              <span>🖨️ 수료증 인쇄/저장</span>
+            </button>
+            <button onclick="app.closeModal('certificateModal')" class="px-5 py-2.5 bg-slate-800 text-white font-bold text-xs rounded-xl">
+              닫기
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    this.appendModal(modalHtml);
+  }
+
+  appendModal(html) {
+    const existing = document.getElementById("modalRoot");
+    if (existing) {
+      existing.innerHTML = html;
+    } else {
+      const root = document.createElement("div");
+      root.id = "modalRoot";
+      root.innerHTML = html;
+      document.body.appendChild(root);
+    }
+  }
+
+  closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.remove();
+  }
+
+  showToast(message, type = "info") {
+    const container = document.getElementById("toastContainer");
+    if (!container) return;
+
+    const toast = document.createElement("div");
+    const bgColors = {
+      success: "bg-emerald-600 text-white",
+      warning: "bg-amber-600 text-white",
+      info: "bg-slate-800 text-white"
+    };
+
+    toast.className = `px-4 py-3 rounded-2xl shadow-xl text-xs font-semibold flex items-center gap-2 toast-animate ${bgColors[type] || bgColors.info}`;
+    toast.innerHTML = `
+      <span>${type === 'success' ? '✓' : '💡'}</span>
+      <span>${message}</span>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      toast.style.transition = "opacity 0.3s ease";
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+}
+
+const app = new AppController();
+  </script>
 
 </body>
 </html>
