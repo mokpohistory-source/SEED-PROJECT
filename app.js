@@ -203,7 +203,13 @@ async function route(){
       if(!Store.t){ Store.next = location.hash; return viewLogin(); }
       return await viewStudent(p.slice(1));
     }
-    if(p[0] === 'login') return viewLogin();
+    // 이미 들어와 있으면 로그인 칸을 다시 보여주지 않는다.
+    // 일부러 다른 학번으로 바꿀 때만 #/login/new 로 온다.
+    if(p[0] === 'login'){
+      if(p[1] === 'new'){ Store.t = null; return viewLogin(); }
+      return Store.t ? go('#/s') : viewLogin();
+    }
+    if(Store.t || Store.jwt) return viewGate(true);
     return viewGate();
   }catch(e){
     console.error(e);
@@ -217,15 +223,20 @@ async function route(){
 /* =====================================================================
    5. 첫 화면 · 로그인
    ===================================================================== */
-function viewGate(){
+function viewGate(signedIn){
+  const student = !!Store.t, staff = !!Store.jwt;
   shell('들어가기', `
     <div class="card center" style="margin-top:36px">
       <h2 style="font-size:26px;margin-bottom:6px">SEED 프로그램</h2>
       <p class="muted">학업실수 기반 자기주도학습 · 9차시</p>
       <div class="row" style="justify-content:center;margin-top:22px">
-        <a class="btn p" href="#/login" style="min-width:190px">학생으로 들어가기</a>
-        <a class="btn" href="#/t">선생님</a>
+        ${student
+          ? `<a class="btn p" href="#/s" style="min-width:200px">이어서 들어가기</a>`
+          : `<a class="btn p" href="#/login" style="min-width:190px">학생으로 들어가기</a>`}
+        <a class="btn" href="#/t">${staff ? '선생님 화면' : '선생님'}</a>
       </div>
+      ${student ? `<p class="hint" style="margin-top:16px">
+        다른 학번으로 들어가려면 <a href="#/login/new">여기</a>를 누르세요.</p>` : ''}
     </div>`);
 }
 
@@ -243,7 +254,7 @@ function viewLogin(){
         <input id="code" class="code-in" type="text" inputmode="numeric" maxlength="4" autocomplete="one-time-code" placeholder="····">
       </div>
       <button class="btn p wide" id="doLogin" style="margin-top:18px">들어가기</button>
-      <p class="hint">한 번 들어오면 31일 동안 이 기기에서는 다시 넣지 않아도 됩니다.
+      <p class="hint">한 번 들어오면 <b>프로그램이 끝날 때까지 이 기기에서는 다시 넣지 않아도 됩니다.</b>
         휴대폰·태블릿에서도 같은 학번과 코드로 들어올 수 있습니다.</p>
     </div>`);
   const sno = $('#sno'), code = $('#code'), btn = $('#doLogin');
