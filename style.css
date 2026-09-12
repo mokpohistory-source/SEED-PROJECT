@@ -1,0 +1,186 @@
+/* SEED 프로그램 웹앱 — 공통 스타일
+   목포대학교 교육학과 정윤미 · 2026 */
+
+:root{
+  --bg:#f6f7f3; --card:#ffffff; --ink:#20261f; --ink2:#5b6458; --line:#e2e6dc;
+  --green:#4b7f52; --green-d:#39633f; --green-l:#eaf2e9;
+  --amber:#b4761f; --amber-l:#fdf3e2;
+  --red:#b3453b; --red-l:#fbeceb;
+  --blue:#3f6ea8; --blue-l:#ecf2f9;
+  --r:14px; --sh:0 1px 2px rgba(32,38,31,.06), 0 6px 18px rgba(32,38,31,.05);
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font:16px/1.65 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","맑은 고딕",Pretendard,system-ui,sans-serif;
+  -webkit-text-size-adjust:100%;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--green-d)}
+
+/* ---------- 레이아웃 ---------- */
+.wrap{max-width:860px;margin:0 auto;padding:0 16px 80px}
+.wrap.wide{max-width:1180px}
+header.top{
+  position:sticky;top:0;z-index:30;background:rgba(246,247,243,.94);
+  backdrop-filter:saturate(1.4) blur(8px);border-bottom:1px solid var(--line);
+}
+header.top .bar{max-width:1180px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
+.brand{font-weight:800;letter-spacing:-.02em;font-size:18px;display:flex;align-items:center;gap:8px}
+.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--green)}
+.spacer{flex:1}
+.who{font-size:14px;color:var(--ink2)}
+
+/* ---------- 카드 ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:20px;margin:14px 0}
+.card.tight{padding:14px 16px}
+.card h2{margin:0 0 4px;font-size:19px;letter-spacing:-.01em}
+.card h3{margin:18px 0 6px;font-size:16px}
+.muted{color:var(--ink2);font-size:14px}
+.hint{color:var(--ink2);font-size:13.5px;margin:6px 0 0}
+
+/* ---------- 버튼 ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:11px 18px;border-radius:11px;border:1px solid var(--line);
+  background:#fff;cursor:pointer;font-weight:600;min-height:46px;
+  transition:.12s transform,.12s box-shadow,.12s background;
+}
+.btn:hover{background:#fafbf8}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.p{background:var(--green);border-color:var(--green);color:#fff}
+.btn.p:hover{background:var(--green-d)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--ink2)}
+.btn.sm{padding:7px 12px;min-height:36px;font-size:14px;border-radius:9px}
+.btn.wide{width:100%}
+.btn.danger{color:var(--red);border-color:#e9cdca}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row.end{justify-content:flex-end}
+
+/* ---------- 입력 ---------- */
+label.lab{display:block;font-weight:700;margin:0 0 6px;font-size:15.5px}
+input[type=text],input[type=password],input[type=number],input[type=email],select,textarea{
+  width:100%;padding:12px 13px;border:1.5px solid var(--line);border-radius:11px;background:#fff;
+}
+textarea{resize:vertical;min-height:92px;line-height:1.7}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px var(--green-l)}
+.code-in{font:700 28px/1.2 var(--mono);letter-spacing:.5em;text-align:center;padding:16px 13px}
+
+/* ---------- 칩 / 배지 ---------- */
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;
+  padding:3px 9px;border-radius:999px;background:#eef1ea;color:var(--ink2);white-space:nowrap}
+.chip.ok{background:var(--green-l);color:var(--green-d)}
+.chip.warn{background:var(--amber-l);color:var(--amber)}
+.chip.bad{background:var(--red-l);color:var(--red)}
+.chip.info{background:var(--blue-l);color:var(--blue)}
+
+/* ---------- 탭 ---------- */
+.tabs{display:flex;gap:6px;margin:14px 0 0;overflow-x:auto;padding-bottom:2px}
+.tabs button{
+  flex:0 0 auto;padding:10px 16px;border-radius:11px 11px 0 0;border:1px solid var(--line);border-bottom:none;
+  background:#eef1ea;cursor:pointer;font-weight:700;color:var(--ink2);min-height:44px
+}
+.tabs button[aria-selected=true]{background:#fff;color:var(--ink)}
+.panel{background:#fff;border:1px solid var(--line);border-radius:0 var(--r) var(--r) var(--r);box-shadow:var(--sh);padding:20px}
+
+/* ---------- 진행 막대 ---------- */
+.bar{height:9px;border-radius:99px;background:#e7ebe3;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:var(--green);border-radius:99px;transition:width .4s}
+
+/* ---------- 칸(필드) ---------- */
+.field{border:1px solid var(--line);border-radius:12px;padding:14px 15px;margin:12px 0;background:#fff}
+.field.done{border-color:#cfe0cf;background:#fcfdfb}
+.field.empty{border-color:#e8ded0}
+.field .fh{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px}
+.field .fh .lab{flex:1;margin:0}
+.field .ft{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.field .ft .spacer{flex:1}
+.step{font:700 12px/1 var(--mono);color:var(--ink2);background:#eef1ea;border-radius:6px;padding:5px 7px;margin-top:3px}
+
+/* ---------- 표 ---------- */
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{border-bottom:1px solid var(--line);padding:9px 8px;text-align:left;vertical-align:top}
+th{font-size:13px;color:var(--ink2);background:#f7f9f5;position:sticky;top:0}
+.scroll{overflow:auto;max-height:60vh;border:1px solid var(--line);border-radius:12px}
+
+/* ---------- 공유벽 ---------- */
+.wallgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-top:14px}
+.post{background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px 15px;box-shadow:var(--sh);
+  animation:pop .35s ease both}
+.post .pk{font-size:12px;font-weight:800;color:var(--green-d);display:block;margin-top:7px}
+.post p{margin:2px 0 0;white-space:pre-wrap;word-break:break-word}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+
+/* 큰 화면 띄우기 */
+body.project{background:#141a14;color:#f2f5ef}
+body.project .wrap{max-width:1600px;padding-top:10px}
+body.project .post{background:#1e271e;border-color:#33402f;color:#f2f5ef;font-size:22px;line-height:1.55}
+body.project .post .pk{color:#9ecb9c;font-size:15px}
+body.project .wallgrid{grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px}
+body.project .phead{display:flex;align-items:baseline;gap:16px;padding:10px 4px}
+body.project .phead h1{font-size:30px;margin:0;font-weight:800}
+body.project .phead .n{font-size:18px;color:#9ecb9c}
+body.project .btn{background:#2b372a;border-color:#3d4b3a;color:#e8efe4}
+body.project .btn:hover{background:#35432f}
+body.project .btn:disabled{opacity:.4;color:#b9c6b2}
+body.project .btn.ghost{background:transparent;border-color:transparent}
+
+/* ---------- 공개/미공개 고르기 ---------- */
+.vis{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+.vis label{
+  flex:1 1 170px;display:flex;gap:10px;align-items:flex-start;cursor:pointer;
+  border:1.5px solid var(--line);border-radius:12px;padding:12px 13px;background:#fff
+}
+.vis label:has(input:checked){border-color:var(--green);background:var(--green-l)}
+.vis input{margin-top:3px;accent-color:var(--green);width:18px;height:18px}
+.vis b{display:block}
+.vis span{font-size:13px;color:var(--ink2)}
+
+/* ---------- 성장(꽃/나무) ---------- */
+.grow{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.grow svg{flex:0 0 auto}
+.stagerow{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
+.stagerow i{width:26px;height:26px;border-radius:8px;background:#e7ebe3;display:grid;place-items:center;
+  font:700 12px/1 var(--mono);color:var(--ink2);font-style:normal}
+.stagerow i.on{background:var(--green);color:#fff}
+
+/* ---------- 레이더 ---------- */
+.radar{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.radar svg{flex:0 0 auto}
+.legend{font-size:14px}
+.legend div{display:flex;gap:8px;align-items:center;margin:3px 0}
+.legend b{font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
+
+/* ---------- 알림 ---------- */
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:99;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+#toast div{background:#20261f;color:#fff;padding:11px 18px;border-radius:11px;box-shadow:0 8px 24px rgba(0,0,0,.2);
+  font-size:14.5px;font-weight:600;animation:tin .25s ease both;max-width:min(92vw,520px)}
+#toast div.bad{background:var(--red)}
+#toast div.ok{background:var(--green-d)}
+@keyframes tin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ---------- 기타 ---------- */
+.note{border-left:4px solid var(--green);background:var(--green-l);padding:11px 14px;border-radius:0 10px 10px 0;margin:12px 0;font-size:14.5px}
+.note.warn{border-color:var(--amber);background:var(--amber-l)}
+.note.bad{border-color:var(--red);background:var(--red-l)}
+.center{text-align:center}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.foot{margin:40px 0 0;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink2);text-align:center}
+.print-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.pcard{border:1px dashed #b9c2b2;border-radius:10px;padding:12px 14px}
+.pcard .no{font:700 15px var(--mono)}
+.pcard .cd{font:800 26px/1.2 var(--mono);letter-spacing:.25em;margin-top:4px}
+@media print{
+  header.top,.tabs,.btn,.no-print{display:none!important}
+  body{background:#fff}
+  .card,.panel{box-shadow:none;border:none;padding:0}
+  .print-cards{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:560px){
+  .card{padding:16px 15px}
+  .panel{padding:15px}
+  .brand{font-size:16px}
+}
