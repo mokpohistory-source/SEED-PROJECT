@@ -10,16 +10,29 @@ const CFG = {
   draftEverySec : 30,
 };
 
-/* ---------- 5유형 이름 (표시용) ---------- */
-const AREA = {
-  C:'① 인지적 실수 — 몰라서 실수',
-  M:'② 메타인지적 실수 — 안다고 착각한 실수',
-  L:'③ 실행·자원관리 실수 — 실행이 무너진 실수',
-  A:'④ 귀인·해석 반응 — 원인을 잘못 읽는 반응',
-  E:'⑤ 정서·회피 반응 — 마음이 막는 반응',
+/* ---------- 5영역 이름 ----------
+   이름은 코드가 아니라 DB(app_settings.area_labels)에 있다.
+   서버에서 못 받아온 경우에만 아래 값을 쓴다. 구글폼 확정판 기준. */
+let AREA = {
+  C:'① 인지적 실수', M:'② 메타인지적 실수', L:'③ 학습실행 실수',
+  A:'④ 귀인 반응',   E:'⑤ 정서반응',
 };
-const AREA_SHORT = { C:'① 인지', M:'② 메타인지', L:'③ 실행·자원관리', A:'④ 귀인·해석', E:'⑤ 정서·회피' };
-const PRIMARY_AREAS = ['C','M','L'];   // 1차 실수 (Target Error는 여기서만)
+let AREA_SHORT = { C:'① 인지', M:'② 메타인지', L:'③ 학습실행', A:'④ 귀인', E:'⑤ 정서' };
+let CORE_AREAS = ['C','M','L'];        // 중심 영역으로 고를 수 있는 영역
+const AREA_ORDER = ['C','M','L','A','E'];
+
+let AREA_META = {};                    // 캐릭터 · 테두리색 · 말풍선 (실물 카드와 맞춤)
+function applyLabels(me){
+  const L = me && me.area_labels;
+  if(L){
+    AREA_META = L;
+    for(const k of AREA_ORDER){
+      if(L[k] && L[k].name)  AREA[k] = L[k].name;
+      if(L[k] && L[k].short) AREA_SHORT[k] = L[k].short;
+    }
+  }
+  if(Array.isArray(me && me.core_areas) && me.core_areas.length) CORE_AREAS = me.core_areas;
+}
 
 /* =====================================================================
    1. 서버 호출
@@ -259,7 +272,7 @@ function viewLogin(){
 let ME = null;
 
 async function loadMe(force){
-  if(!ME || force) ME = await rpc('seed_me', { p_token: Store.t });
+  if(!ME || force){ ME = await rpc('seed_me', { p_token: Store.t }); applyLabels(ME); }
   return ME;
 }
 
@@ -362,6 +375,8 @@ async function paneActivity(no){
   const data = await rpc('seed_session_fields', { p_token: Store.t, p_session: no });
   const fields = data.fields || [];
   const sc = await rpc('seed_selfcheck', { p_token: Store.t }).catch(()=>({has_result:false}));
+  const needCards = fields.some(f => f.input_type === 'card_select');
+  const cards = needCards ? await rpc('seed_cards', { p_token: Store.t }).catch(()=>[]) : [];
 
   if(!fields.length){
     p.innerHTML = `<p class="muted">이 차시에 쓸 칸이 아직 없습니다.</p>`; return;
@@ -378,9 +393,35 @@ async function paneActivity(no){
     <div id="fields"></div>`;
 
   const box = $('#fields');
-  fields.forEach(f => box.appendChild(fieldCard(f, { sc, session: sess })));
+  fields.forEach(f => {
+    const d = STEPS[f.field_id];
+    if(d) box.appendChild(h(`<div class="stepdiv"><b>${esc(d.t)}</b>${d.s?`<span>${d.s}</span>`:''}</div>`));
+    box.appendChild(fieldCard(f, { sc, cards, session: sess }));
+    const n = NOTES[f.field_id];
+    if(n) box.appendChild(h(`<div class="note" style="margin:-4px 0 14px">${n}</div>`));
+  });
   startDraftTimer();
 }
+
+/* 화면을 단계로 끊어 준다. 앱에 저장되는 칸만 여기에 있다.
+   장면 보기·세 질문·5칸 연습은 큰 화면과 워크북에서 하고, 앱에는 넣지 않는다. */
+const STEPS = {
+  S1_01:   { t:'여기부터는 기록으로 남습니다',
+             s:'워크북에 먼저 손으로 쓰고, 정리된 것을 옮겨 적으면 됩니다.' },
+  S1_02:   { t:'스토리카드 갤러리' },
+  S1_03_a: { t:'내 실수 사건 한 장면',
+             s:'워크북 03쪽에 다섯 칸을 먼저 쓰고 옮겨 적습니다.' },
+  S1_04_a: { t:'세 자료를 나란히 놓고 보기' },
+  S1_QP:   { t:'시작점 문장',
+             s:'9차시에 봉투를 열 때까지 아무도 보지 않습니다.' },
+  S2_01:   { t:'오늘 다룰 사건' },
+  S2_02_a: { t:'8칸으로 다시 보기',
+             s:'1차시에서 본 장면을 이번에는 슬로모션처럼 더 자세히 살펴봅니다.' },
+};
+const NOTES = {
+  S1_03_e: '오늘은 실수 장면을 다섯 칸으로 봅니다. <b>2차시에는 같은 장면을 여덟 칸으로 넓혀</b> 놓친 신호와 다음 행동까지 살펴봅니다.',
+  S1_04_e: '먼저 내 생각을 정리합니다. 짝과 이야기해 본 뒤, <b>마지막 기록은 각자 자기 생각으로</b> 적습니다.',
+};
 
 function fieldCard(f, ctx){
   const saved = f.value != null;
@@ -397,23 +438,35 @@ function fieldCard(f, ctx){
   const start = f.value != null ? f.value : (f.draft || '');
   let read = ()=>'';
 
-  if(f.field_id === 'S1_04_d'){                      // 주 영역 / 부 영역
-    const m = /주[^:]*:\s*([CMLAE])\D*부[^:]*:\s*([CMLAE])/.exec(start) || [];
+  if(f.field_id === 'S1_04_d'){            // 이번 사건의 중심 영역 / 함께 나타난 영역
+    const m = /(?:중심|주)[^:]*:\s*([CMLAE])[\s\S]*?(?:함께|부)[^:]*:\s*([CMLAE])/.exec(start) || [];
     body.innerHTML = `
       <div class="row" style="gap:12px">
-        <div style="flex:1;min-width:220px"><label class="lab" style="font-size:14px">주 영역</label>
-          ${sel('main_'+f.field_id, PRIMARY_AREAS, m[1])}</div>
-        <div style="flex:1;min-width:220px"><label class="lab" style="font-size:14px">부 영역</label>
-          ${sel('sub_'+f.field_id, Object.keys(AREA), m[2])}</div>
+        <div style="flex:1;min-width:230px"><label class="lab" style="font-size:14px">이번 사건의 중심 영역</label>
+          ${sel('core_'+f.field_id, CORE_AREAS, m[1])}</div>
+        <div style="flex:1;min-width:230px"><label class="lab" style="font-size:14px">함께 나타난 영역</label>
+          ${sel('with_'+f.field_id, AREA_ORDER, m[2])}</div>
       </div>
-      <p class="hint">주 영역은 ①②③(1차 실수) 중에서 고릅니다. ④⑤는 실수 뒤에 따라온 반응이라 부 영역에 둡니다.</p>`;
+      <p class="hint"><b>중심 영역</b>은 이번 사건에서 실수가 가장 직접적으로 나타난 부분입니다.
+        <b>함께 나타난 영역</b>은 같은 사건에서 같이 보인 다른 실수, 또는 실수 뒤의 귀인·정서반응입니다.
+        <b>사람의 유형을 정하는 활동이 아닙니다.</b></p>`;
+    const core = $(`#core_${f.field_id}`, body), withs = $(`#with_${f.field_id}`, body);
+    // 중심 영역으로 고른 것은 '함께 나타난 영역'에서 고를 수 없다
+    const sync = ()=>{
+      [...withs.options].forEach(o=>{
+        o.disabled = (o.value !== '' && o.value === core.value);
+        o.textContent = o.disabled ? AREA[o.value] + '  (중심 영역으로 골랐습니다)' : (o.value ? AREA[o.value] : o.textContent);
+      });
+      if(withs.value && withs.value === core.value) withs.value = '';
+    };
+    core.addEventListener('change', sync); sync();
     read = ()=>{
-      const a = $(`#main_${f.field_id}`, body).value, b = $(`#sub_${f.field_id}`, body).value;
+      const a = core.value, b = withs.value;
       if(!a || !b) return '';
-      return `주: ${AREA_SHORT[a]} / 부: ${AREA_SHORT[b]}`;
+      return `중심: ${AREA_SHORT[a]} / 함께: ${AREA_SHORT[b]}`;
     };
   } else if(f.input_type === 'select'){
-    body.innerHTML = sel('i_'+f.field_id, Object.keys(AREA), areaOf(start));
+    body.innerHTML = sel('i_'+f.field_id, AREA_ORDER, areaOf(start));
     read = ()=>{ const v = $(`#i_${f.field_id}`, body).value; return v ? AREA_SHORT[v] : ''; };
   } else if(f.input_type === 'auto'){
     const tops = (ctx.sc && ctx.sc.has_result) ? (ctx.sc.top_areas||[]) : null;
@@ -422,10 +475,67 @@ function fieldCard(f, ctx){
     body.innerHTML = `<div class="note" style="margin:0">${esc(start || txt)}</div>`;
     read = ()=> start || (tops ? tops.map(a=>AREA_SHORT[a]||a).join(' · ') : '');
   } else if(f.input_type === 'card_select'){
-    body.innerHTML = `<input type="text" id="i_${f.field_id}" value="${esc(start)}"
-        placeholder="예: A-03, C-07, E-02  (화면에 뜬 카드 번호 3개)">
-      <p class="hint">큰 화면에 뜬 갤러리에서 고른 카드 <b>3장</b>의 번호를 쉼표로 적어 주세요.</p>`;
-    read = ()=> $(`#i_${f.field_id}`, body).value;
+    const MAX = 3;
+    const picked = new Set((start.match(/[CMLAE]-\d{2}/g) || []).slice(0, MAX));
+    const cards = ctx.cards || [];
+    if(!cards.length){
+      body.innerHTML = `<input type="text" id="i_${f.field_id}" value="${esc(start)}"
+          placeholder="카드 번호를 쉼표로 적어 주세요">
+        <p class="hint">카드 목록을 불러오지 못했습니다. 번호를 직접 적어도 됩니다.</p>`;
+      read = ()=> $(`#i_${f.field_id}`, body).value;
+    }else{
+      const byArea = {}; AREA_ORDER.forEach(a=> byArea[a] = cards.filter(c=>c.area===a));
+      body.innerHTML = `
+        <div class="row" style="gap:6px" id="ctabs_${f.field_id}">
+          ${AREA_ORDER.map((a,i)=>`<button type="button" class="btn sm areatab ${i?'':'p'}" data-a="${a}"
+              style="--cc:${esc((AREA_META[a]||{}).color || '#4b7f52')}">${esc(AREA_SHORT[a])}</button>`).join('')}
+        </div>
+        <p class="hint" style="margin-top:8px">큰 화면의 갤러리를 보면서, <b>내 이야기 같다</b> 싶은 카드를
+          <b>최대 ${MAX}장</b> 눌러 주세요. 다시 누르면 선택이 풀립니다.</p>
+        <div class="cardgrid" id="cg_${f.field_id}"></div>
+        <div class="pickbar" id="pb_${f.field_id}"></div>`;
+      const grid = $(`#cg_${f.field_id}`, body), bar = $(`#pb_${f.field_id}`, body);
+      const drawBar = ()=>{
+        const list = [...picked];
+        bar.innerHTML = `<b>고른 카드 ${list.length} / ${MAX}</b>` + (list.length
+          ? list.map(c=>{ const card = cards.find(x=>x.code===c) || {};
+              return `<span class="chip ok">${esc(card.no||'')} ${esc(card.title||c)}</span>`; }).join('')
+          : `<span class="muted">아직 고르지 않았습니다</span>`);
+      };
+      const drawGrid = (area)=>{
+        const m = AREA_META[area] || {};
+        const col = m.color || '#4b7f52';
+        grid.innerHTML = `<div class="areahead" style="border-color:${esc(col)}">
+            <b style="color:${esc(col)}">${esc(m.char || AREA_SHORT[area])}</b>
+            <span>${esc(m.bubble || '')}</span></div>` +
+          byArea[area].map(c=>`
+          <button type="button" class="cardpick ${picked.has(c.code)?'on':''}" data-c="${esc(c.code)}"
+                  style="--cc:${esc(col)}">
+            <span class="cc">${esc(c.no || '')} · ${esc(c.code)}</span>
+            <b>${esc(c.title || '')}</b>
+            <span class="ct">${esc(c.text || '')}</span>
+          </button>`).join('');
+        grid.querySelectorAll('.cardpick').forEach(btn=>{
+          btn.onclick = ()=>{
+            const code = btn.dataset.c;
+            if(picked.has(code)) picked.delete(code);
+            else if(picked.size >= MAX){ toast(`${MAX}장까지 고를 수 있습니다. 하나를 풀고 다시 눌러 주세요.`, 'bad'); return; }
+            else picked.add(code);
+            btn.classList.toggle('on', picked.has(code));
+            drawBar();
+            const v = read(); if(v) dirty.set(f.field_id, v);
+          };
+        });
+      };
+      $(`#ctabs_${f.field_id}`, body).querySelectorAll('[data-a]').forEach(t=>{
+        t.onclick = ()=>{
+          $(`#ctabs_${f.field_id}`, body).querySelectorAll('[data-a]').forEach(x=>x.classList.remove('p'));
+          t.classList.add('p'); drawGrid(t.dataset.a);
+        };
+      });
+      drawGrid(AREA_ORDER[0]); drawBar();
+      read = ()=> [...picked].join(', ');
+    }
   } else {
     const big = /사건|문장|왜|이유|알게/.test(f.label);
     body.innerHTML = `<textarea id="i_${f.field_id}" rows="${big?4:3}"
