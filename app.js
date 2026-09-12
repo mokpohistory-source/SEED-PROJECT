@@ -53,7 +53,46 @@ async function authLogin(email, password){
   });
   const d = await res.json();
   if(!res.ok) throw new Error(d.error_description || d.msg || '이메일 또는 비밀번호가 맞지 않습니다.');
+  keepAuth(d);
   return d;
+}
+
+/* 선생님 로그인은 한 시간쯤이면 만료된다. 회기 도중에 풀리지 않도록
+   만료 전에 미리 갱신하고, 그래도 거절당하면 한 번 더 갱신해 다시 보낸다. */
+function keepAuth(d){
+  if(!d || !d.access_token) return;
+  Store.jwt = d.access_token;
+  if(d.refresh_token) localStorage.setItem('seed_refresh', d.refresh_token);
+  const sec = Number(d.expires_in || 3600);
+  localStorage.setItem('seed_jwt_exp', String(Date.now() + sec*1000));
+}
+async function refreshAuth(){
+  const rt = localStorage.getItem('seed_refresh');
+  if(!rt) return false;
+  try{
+    const res = await fetch(`${CFG.url}/auth/v1/token?grant_type=refresh_token`, {
+      method:'POST', headers:{'Content-Type':'application/json','apikey':CFG.key},
+      body: JSON.stringify({ refresh_token: rt })
+    });
+    const d = await res.json();
+    if(!res.ok || !d.access_token) return false;
+    keepAuth(d); return true;
+  }catch(e){ return false; }
+}
+function authExpiring(){
+  const exp = Number(localStorage.getItem('seed_jwt_exp') || 0);
+  return !exp || Date.now() > exp - 120000;      // 만료 2분 전부터 미리 갱신
+}
+// 선생님 화면 전용 호출. 로그인 만료를 알아서 처리한다.
+async function srpc(fn, args){
+  if(authExpiring()) await refreshAuth();
+  try{
+    return await rpc(fn, args, Store.jwt);
+  }catch(e){
+    if(!/로그인이 풀렸습니다|연구자 계정으로/.test(e.message)) throw e;
+    if(!(await refreshAuth())) throw e;
+    return await rpc(fn, args, Store.jwt);
+  }
 }
 
 /* =====================================================================
@@ -84,6 +123,14 @@ function toast(msg, kind=''){
   d.className = kind; d.textContent = msg; box.appendChild(d);
   setTimeout(()=>{ d.style.opacity='0'; d.style.transition='.3s'; setTimeout(()=>d.remove(), 320); }, kind==='bad'?4200:2200);
 }
+// 클릭한 버튼을 돌려준다. await 뒤에는 e.currentTarget 이 비므로 e.target 으로 되찾는다.
+function btnOf(e){
+  if(!e) return null;
+  if(e.currentTarget) return e.currentTarget;
+  const t = e.target;
+  if(t && t.closest) return t.closest('button') || t;
+  return t || null;
+}
 function busy(btn, on, label){
   if(!btn) return;
   if(on){ btn.dataset.lab = btn.textContent; btn.textContent = label||'잠시만요…'; btn.disabled = true; }
@@ -110,7 +157,9 @@ function shell(title, body, opts={}){
   const so = $('#signout');
   if(so) so.onclick = ()=>{
     if(!confirm('나가시겠습니까? 저장한 내용은 그대로 남아 있습니다.')) return;
-    Store.t = null; Store.jwt = null; location.hash = '#/';
+    Store.t = null; Store.jwt = null;
+    localStorage.removeItem('seed_refresh'); localStorage.removeItem('seed_jwt_exp');
+    location.hash = '#/';
   };
 }
 
@@ -164,7 +213,7 @@ function viewLogin(){
       <p class="muted">학번과 받은 접속코드 4자리를 넣어 주세요.</p>
       <div style="margin-top:16px">
         <label class="lab" for="sno">학번</label>
-        <input id="sno" type="text" inputmode="numeric" autocomplete="username" placeholder="예: 20260117">
+        <input id="sno" type="text" inputmode="numeric" autocomplete="username" placeholder="학번 (숫자만)">
       </div>
       <div style="margin-top:14px">
         <label class="lab" for="code">접속코드 4자리</label>
@@ -457,12 +506,12 @@ async function renderWall(q, box){
       : `<p class="muted">아직 열리지 않았습니다. 선생님이 한꺼번에 열면 여기에 뜹니다.</p>`;
     $('#wagain').onclick = ()=>{ box.dataset.again = '1'; renderWall(q, box); };
     $('#wrefresh').onclick = async (e)=>{
-      busy(e.currentTarget, true, '…');
+      busy(btnOf(e), true, '…');
       const n = await rpc('wall_view', { p_token: Store.t, p_question_id: q.question_id });
       g.innerHTML = (n.posts||[]).map(p=>`<div class="post">${
         p.parts.map(x=>`${partLabel(q,x.part_key)}<p>${esc(x.content)}</p>`).join('')}</div>`).join('')
         || `<p class="muted">아직 열리지 않았습니다.</p>`;
-      busy(e.currentTarget, false);
+      busy(btnOf(e), false);
     };
     return;
   }
@@ -503,9 +552,9 @@ async function renderWall(q, box){
   };
   draw(d.posts || []);
   $('#wrefresh').onclick = async (e)=>{
-    busy(e.currentTarget, true, '…');
+    busy(btnOf(e), true, '…');
     const n = await rpc('wall_view', { p_token: Store.t, p_question_id: q.question_id });
-    draw(n.posts || []); busy(e.currentTarget, false);
+    draw(n.posts || []); busy(btnOf(e), false);
   };
   $('#wsend').onclick = async (e)=>{
     const vis = (document.querySelector('input[name=vis]:checked')||{}).value;
@@ -711,8 +760,8 @@ function viewStaffLogin(){
   const submit = async ()=>{
     const b = $('#dologin'); busy(b, true, '확인 중…');
     try{
-      const d = await authLogin($('#em').value.trim(), $('#pw').value);
-      Store.jwt = d.access_token; go('#/t/today');
+      await authLogin($('#em').value.trim(), $('#pw').value);
+      go('#/t/today');
     }catch(e){ toast(e.message, 'bad'); busy(b, false); }
   };
   $('#dologin').onclick = submit;
@@ -721,8 +770,9 @@ function viewStaffLogin(){
 
 let OV = null;
 async function viewStaff(tab){
-  try{ OV = await rpc('staff_overview', {}, Store.jwt); }
-  catch(e){ Store.jwt = null; toast('로그인이 필요합니다.', 'bad'); return viewStaffLogin(); }
+  try{ OV = await srpc('staff_overview', {}); }
+  catch(e){ Store.jwt = null; localStorage.removeItem('seed_jwt_exp');
+            toast('로그인이 필요합니다. 다시 들어와 주세요.', 'bad'); return viewStaffLogin(); }
 
   const tabs = [['today','오늘 진행'],['wall','공유벽'],['roster','명단·코드'],
                 ['data','자기점검 불러오기'],['history','고쳐 쓴 자국']]
@@ -777,15 +827,15 @@ function staffToday(){
 
   document.querySelectorAll('[data-open]').forEach(b=> b.onclick = async ()=>{
     busy(b, true, '…');
-    await rpc('staff_set_session', { p_session:+b.dataset.open, p_is_open: b.dataset.v==='true' }, Store.jwt);
+    await srpc('staff_set_session', { p_session:+b.dataset.open, p_is_open: b.dataset.v==='true' });
     toast(b.dataset.v==='true' ? `${b.dataset.open}차시를 열었습니다.` : `${b.dataset.open}차시를 닫았습니다.`, 'ok');
     go('#/t/today'); route();
   });
   document.querySelectorAll('[data-post]').forEach(b=> b.onclick = async ()=>{
     busy(b, true, '…');
     const s = OV.sessions.find(x=>x.session_no==+b.dataset.post);
-    await rpc('staff_set_session', { p_session:+b.dataset.post, p_is_open: s.is_open,
-                                     p_post_window: b.dataset.v==='true' }, Store.jwt);
+    await srpc('staff_set_session', { p_session:+b.dataset.post, p_is_open: s.is_open,
+                                      p_post_window: b.dataset.v==='true' });
     toast('회기 후 창을 바꿨습니다.', 'ok'); route();
   });
   document.querySelectorAll('[data-att]').forEach(b=> b.onclick = ()=> attendDialog(b.dataset.att, cur));
@@ -827,17 +877,17 @@ function attendDialog(sno, cur){
   </div>`;
   $('#a_cancel').onclick = ()=>{ p.innerHTML = back; staffToday(); };
   $('#a_save').onclick = async (e)=>{
-    busy(e.currentTarget, true, '저장 중…');
+    busy(btnOf(e), true, '저장 중…');
     try{
-      await rpc('staff_set_attendance', { p_student_no: sno, p_session: cur, p_row: {
+      await srpc('staff_set_attendance', { p_student_no: sno, p_session: cur, p_row: {
         attendance_status: $('#a_att').value, participation_type: $('#a_ptype').value,
         workbook_collected: $('#a_wb').value ? $('#a_wb').value==='yes' : null,
         workbook_scanned:  $('#a_scan').value ? $('#a_scan').value==='yes' : null,
         workbook_scan_note: $('#a_note').value || null,
         note: $('#a_memo').value || null,
-      }}, Store.jwt);
+      }});
       toast('기록했습니다.', 'ok'); go('#/t/today'); route();
-    }catch(err){ toast(err.message, 'bad'); busy(e.currentTarget, false); }
+    }catch(err){ toast(err.message, 'bad'); busy(btnOf(e), false); }
   };
 }
 
@@ -862,7 +912,7 @@ function staffWall(){
       노트북을 대형 모니터에 연결한 뒤 그 탭을 모니터 쪽으로 옮기고 전체화면(F11)으로 두세요.</div>`;
   document.querySelectorAll('[data-rel]').forEach(b=> b.onclick = async ()=>{
     busy(b, true, '여는 중…');
-    const r = await rpc('staff_release_wall', { p_question_id: b.dataset.rel }, Store.jwt);
+    const r = await srpc('staff_release_wall', { p_question_id: b.dataset.rel });
     toast(`${r.released}개를 열었습니다.`, 'ok'); route();
   });
 }
@@ -875,15 +925,18 @@ function staffRoster(){
       <span class="chip ${ps.filter(x=>!x.has_code).length?'warn':'ok'}">코드 없음 ${ps.filter(x=>!x.has_code).length}명</span></div>
 
     <h3>1) 명단 올리기</h3>
-    <p class="muted">한 줄에 한 명. <b>학번,이름</b> 순서로 붙여 넣으세요. 이미 있는 학번은 건너뜁니다.</p>
-    <textarea id="ros" rows="5" placeholder="20260117,고OO&#10;20260204,김OO"></textarea>
+    <p class="muted">한 줄에 한 명. <b>학번</b> 다음에 <b>이름</b>. 쉼표·탭·빈칸 무엇으로 나눠 써도 됩니다. 이미 있는 학번은 건너뜁니다.</p>
+    <textarea id="ros" rows="5" placeholder="학번,이름&#10;학번,이름"></textarea>
     <div class="row end" style="margin-top:10px"><button class="btn p" id="rosadd">명단 올리기</button></div>
 
     <h3>2) 접속코드 발급</h3>
     <p class="muted">코드가 <b>없는 학생만</b> 새로 만듭니다. 만든 코드는 <b>이 화면에서 한 번만</b> 보입니다.
       바로 인쇄해 나눠 주세요. (잃어버리면 그 학생만 다시 발급하면 됩니다.)</p>
     <div class="row"><button class="btn p" id="issue">코드 만들기</button>
-      <button class="btn" id="reissue">한 명만 다시 발급</button></div>
+      <button class="btn" id="reissue">한 명만 다시 발급</button>
+      <button class="btn danger" id="reissueall">전체 다시 발급</button></div>
+    <p class="hint">인쇄를 놓쳤으면 <b>전체 다시 발급</b>을 누르세요. 모두에게 새 코드가 나옵니다.
+      학생들에게 이미 나눠 준 뒤라면 옛 코드는 쓸 수 없게 되니, 나눠 주기 전에만 쓰세요.</p>
     <div id="codes"></div>
 
     <h3>3) 명단</h3>
@@ -897,32 +950,55 @@ function staffRoster(){
       </tr>`).join('')}</tbody></table></div>`;
 
   $('#rosadd').onclick = async (e)=>{
-    const rows = $('#ros').value.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
-      const [a,b] = l.split(/[,\t]/); return { student_no:(a||'').trim(), name:(b||'').trim() };
+    // 쉼표·탭·빈칸 무엇으로 나눠 써도 받는다. 첫 덩어리가 학번, 나머지가 이름.
+    const rows = $('#ros').value.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(l=>{
+      const parts = l.split(/[,\t]+|\s+/).filter(Boolean);
+      return { student_no:(parts[0]||'').trim(), name: parts.slice(1).join(' ').trim() };
     }).filter(r=>r.student_no);
     if(!rows.length) return toast('붙여 넣은 내용이 없습니다.', 'bad');
-    busy(e.currentTarget, true, '올리는 중…');
-    try{ const r = await rpc('staff_add_participants', { p_rows: rows }, Store.jwt);
+    busy(btnOf(e), true, '올리는 중…');
+    try{ const r = await srpc('staff_add_participants', { p_rows: rows });
       toast(`${r.rows}줄 처리. 현재 ${r.total}명.`, 'ok'); route(); }
-    catch(err){ toast(err.message, 'bad'); busy(e.currentTarget, false); }
+    catch(err){ toast(err.message, 'bad'); busy(btnOf(e), false); }
   };
   $('#issue').onclick = async (e)=>{
-    busy(e.currentTarget, true, '만드는 중…');
-    try{ showCodes(await rpc('staff_issue_codes', {}, Store.jwt)); }
+    busy(btnOf(e), true, '만드는 중…');
+    try{ showCodes(await srpc('staff_issue_codes', {})); }
     catch(err){ toast(err.message, 'bad'); }
-    busy(e.currentTarget, false);
+    busy(btnOf(e), false);
+  };
+  $('#reissueall').onclick = async (e)=>{
+    const active = ps.filter(x=>x.status === 'active');
+    if(!active.length) return toast('명단이 비어 있습니다.', 'bad');
+    if(!confirm(`${active.length}명 모두에게 새 코드를 만듭니다.\n` +
+                `지금까지의 코드는 쓸 수 없게 됩니다.\n` +
+                `이미 나눠 주셨다면 [취소]를 누르세요.`)) return;
+    const btn = e.currentTarget;
+    let out = [];
+    for(let i=0;i<active.length;i++){
+      busy(btn, true, `만드는 중… ${i+1}/${active.length}`);
+      try{
+        const r = await srpc('staff_issue_codes', { p_reset_student_no: active[i].student_no });
+        if(r && r.length) out = out.concat(r);
+      }catch(err){ toast(`${active[i].student_no}: ${err.message}`, 'bad'); }
+    }
+    busy(btn, false);
+    showCodes(out);
   };
   $('#reissue').onclick = async ()=>{
     const sno = prompt('다시 발급할 학번을 넣어 주세요.');
     if(!sno) return;
-    try{ showCodes(await rpc('staff_issue_codes', { p_reset_student_no: sno.trim() }, Store.jwt)); }
+    try{ showCodes(await srpc('staff_issue_codes', { p_reset_student_no: sno.trim() })); }
     catch(err){ toast(err.message, 'bad'); }
   };
   function showCodes(rows){
     if(!rows || !rows.length){ $('#codes').innerHTML = `<p class="muted">새로 만들 코드가 없습니다. (모두 발급됨)</p>`; return; }
-    $('#codes').innerHTML = `<div class="note warn no-print">아래 코드는 <b>지금만</b> 보입니다.
-        이 화면을 닫으면 다시 볼 수 없습니다. 바로 인쇄하세요.</div>
-      <div class="row no-print" style="margin:10px 0"><button class="btn p" onclick="print()">인쇄</button></div>
+    $('#codes').innerHTML = `<div class="note warn no-print">아래 <b>${rows.length}명</b>의 코드는 <b>지금만</b> 보입니다.
+        이 화면을 벗어나면 같은 코드는 다시 볼 수 없습니다. <b>바로 인쇄하세요.</b><br>
+        종이가 없으면 인쇄 창에서 <b>대상 → PDF로 저장</b>을 고르시면 됩니다.
+        (놓치셨어도 괜찮습니다. 위의 <b>전체 다시 발급</b>으로 새로 만들 수 있습니다.)</div>
+      <div class="row no-print" style="margin:10px 0"><button class="btn p" onclick="print()">인쇄 / PDF로 저장</button></div>
+      <div style="display:none" class="only-print"><b>SEED 프로그램 접속코드 — ${new Date().toLocaleDateString('ko-KR')}</b></div>
       <div class="print-cards">${rows.map(r=>`<div class="pcard">
         <div class="no">${esc(r.student_no)} ${esc(r.name||'')}</div>
         <div class="cd">${esc(r.code)}</div>
@@ -938,7 +1014,7 @@ function staffData(){
     <p class="muted">구글폼 응답을 CSV로 내려받아 그대로 붙여 넣으세요.
       첫 줄은 <b>머리글</b>이어야 하고, 학번 열 이름에 <b>학번</b>이 들어가야 합니다.
       나머지 열 이름은 <b>C-01 … E-10</b> 형식이어야 합니다.</p>
-    <textarea id="csv" rows="8" placeholder="학번,C-01,C-02,...,E-10&#10;20260117,3,4,...,2"></textarea>
+    <textarea id="csv" rows="8" placeholder="학번,C-01,C-02,...,E-10&#10;(학번),3,4,...,2"></textarea>
     <div class="row" style="margin-top:10px">
       <input type="text" id="src" placeholder="자료 이름 (예: 2026-09-10 사전검사)" style="max-width:300px">
       <span class="spacer"></span><button class="btn p" id="imp">불러오기</button></div>
@@ -951,16 +1027,16 @@ function staffData(){
     let rows;
     try{ rows = parseCSV(txt); }catch(err){ return toast(err.message, 'bad'); }
     if(!rows.length) return toast('읽을 수 있는 줄이 없습니다.', 'bad');
-    busy(e.currentTarget, true, '불러오는 중…');
+    busy(btnOf(e), true, '불러오는 중…');
     try{
-      const r = await rpc('staff_import_selfcheck', { p_rows: rows, p_source: $('#src').value || null }, Store.jwt);
+      const r = await srpc('staff_import_selfcheck', { p_rows: rows, p_source: $('#src').value || null });
       const miss = r.not_found || [];
       $('#impres').innerHTML = `<div class="note ${miss.length?'warn':''}" style="margin-top:14px">
         <b>${r.imported}명</b> 불러왔습니다.
         ${miss.length ? `<br>명단에 없는 학번 ${miss.length}개: ${miss.map(esc).join(', ')} — 명단 탭에서 먼저 등록해 주세요.` : ''}</div>`;
       toast(`${r.imported}명 불러왔습니다.`, 'ok');
     }catch(err){ toast(err.message, 'bad'); }
-    busy(e.currentTarget, false);
+    busy(btnOf(e), false);
   };
 }
 function parseCSV(text){
@@ -999,9 +1075,9 @@ function staffHistory(){
     <div id="hres" style="margin-top:14px"></div>`;
   $('#hgo').onclick = async (e)=>{
     const sno = $('#hsno').value.trim(); if(!sno) return toast('학번을 넣어 주세요.', 'bad');
-    busy(e.currentTarget, true, '…');
+    busy(btnOf(e), true, '…');
     try{
-      const rows = await rpc('staff_history', { p_student_no: sno, p_field_id: $('#hfid').value.trim() || null }, Store.jwt);
+      const rows = await srpc('staff_history', { p_student_no: sno, p_field_id: $('#hfid').value.trim() || null });
       $('#hres').innerHTML = rows.length ? `<div class="scroll"><table>
         <thead><tr><th>칸</th><th>내용</th><th>버전</th><th>앞 버전</th><th>시각</th></tr></thead>
         <tbody>${rows.map(r=>`<tr>
@@ -1012,7 +1088,7 @@ function staffHistory(){
           <td>${fmtTime(r.saved_at)}</td></tr>`).join('')}</tbody></table></div>`
         : `<p class="muted">저장된 기록이 없습니다.</p>`;
     }catch(err){ toast(err.message, 'bad'); }
-    busy(e.currentTarget, false);
+    busy(btnOf(e), false);
   };
 }
 
@@ -1025,7 +1101,7 @@ async function viewProject(qid){
   document.body.className = 'project';
   const draw = async ()=>{
     let d;
-    try{ d = await rpc('staff_wall_view', { p_question_id: qid }, Store.jwt); }
+    try{ d = await srpc('staff_wall_view', { p_question_id: qid }); }
     catch(e){ toast(e.message, 'bad'); return; }
     const q = d.question || {};
     app().innerHTML = `<div class="wrap wide">
@@ -1039,8 +1115,8 @@ async function viewProject(qid){
         || `<p style="color:#9ecb9c;font-size:20px">아직 열린 글이 없습니다. [대기 중인 글 열기]를 누르세요.</p>`}</div>
     </div>`;
     $('#prel').onclick = async (e)=>{
-      busy(e.currentTarget, true, '여는 중…');
-      const r = await rpc('staff_release_wall', { p_question_id: qid }, Store.jwt);
+      busy(btnOf(e), true, '여는 중…');
+      const r = await srpc('staff_release_wall', { p_question_id: qid });
       toast(`${r.released}개를 열었습니다.`, 'ok'); draw();
     };
     $('#pback').onclick = ()=>{ clearInterval(projTimer); go('#/t/wall'); };
