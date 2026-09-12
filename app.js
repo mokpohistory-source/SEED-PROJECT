@@ -310,11 +310,22 @@ async function viewStudent(path){
   document.querySelectorAll('.tabs button').forEach(b=>{
     b.onclick = ()=> go(`#/s/${b.dataset.tab}${b.dataset.tab==='act'?'/'+cur:''}`);
   });
+  bindSessionChips(tab);
 
   if(tab === 'act')     return paneActivity(cur);
   if(tab === 'wall')    return paneWallPick(cur, path[1]);
   if(tab === 'records') return paneRecords();
   if(tab === 'grow')    return paneGrow();
+}
+
+// 위쪽 차시 칩을 누르면 그 차시로 옮긴다. 보고 있던 탭은 그대로 둔다.
+function bindSessionChips(tab){
+  document.querySelectorAll('.chip[data-s]').forEach(function(b){
+    b.onclick = function(){
+      const n = b.dataset.s;
+      go(tab === 'wall' ? `#/s/wall/${n}` : `#/s/act/${n}`);
+    };
+  });
 }
 
 function lastTouched(me){
@@ -605,7 +616,7 @@ async function bumpProgress(){
     const me = await loadMe(true);
     const cur = Number((location.hash.split('/')[3])) || 1;
     const strip = $('.card.tight'); if(strip) strip.outerHTML = sessionStrip(me, cur);
-    document.querySelectorAll('.chip[data-s]').forEach(b=> b.onclick = ()=> go(`#/s/act/${b.dataset.s}`));
+    bindSessionChips('act');
   }catch(e){}
 }
 
