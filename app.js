@@ -480,11 +480,22 @@ function fieldCard(f, ctx){
     body.innerHTML = sel('i_'+f.field_id, AREA_ORDER, areaOf(start));
     read = ()=>{ const v = $(`#i_${f.field_id}`, body).value; return v ? AREA_SHORT[v] : ''; };
   } else if(f.input_type === 'auto'){
-    const tops = (ctx.sc && ctx.sc.has_result) ? (ctx.sc.top_areas||[]) : null;
-    const txt = tops ? tops.map(a=>AREA_SHORT[a]||a).join(' · ')
-                     : '사전 자기점검 결과가 아직 올라오지 않았습니다. 선생님께 알려 주세요.';
-    body.innerHTML = `<div class="note" style="margin:0">${esc(start || txt)}</div>`;
-    read = ()=> start || (tops ? tops.map(a=>AREA_SHORT[a]||a).join(' · ') : '');
+    // 자동으로 채워지는 칸. 다만 채울 자료가 없으면 학생이 직접 적을 수 있어야 한다.
+    const tops = (ctx.sc && ctx.sc.has_result) ? (ctx.sc.top_areas || []) : [];
+    const auto = tops.length ? tops.map(a => AREA_SHORT[a] || a).join(' · ') : '';
+    const shown = start || auto;
+    if(shown){
+      body.innerHTML = `<div class="note" style="margin:0">${esc(shown)}</div>
+        <p class="hint">사전 자기점검에서 상대적으로 높게 나온 두 영역입니다. 좋고 나쁨이 아니라 출발점입니다.</p>`;
+      read = ()=> shown;
+    }else{
+      body.innerHTML = `<input type="text" id="i_${f.field_id}" value=""
+          placeholder="예: ① 인지 · ③ 학습실행">
+        <p class="hint">사전 자기점검 결과가 아직 연결되지 않았습니다.
+          받으신 <b>결과지에 적힌 상위 두 영역</b>을 직접 적어 주세요.
+          결과지가 없으면 기억나는 대로 적고 선생님께 말씀해 주세요. 이 칸 때문에 멈추지 않으셔도 됩니다.</p>`;
+      read = ()=> $(`#i_${f.field_id}`, body).value;
+    }
   } else if(f.input_type === 'card_select'){
     const MAX = 3;
     const picked = new Set((start.match(/[CMLAE]-\d{2}/g) || []).slice(0, MAX));
@@ -1053,7 +1064,14 @@ function staffRoster(){
   const ps = OV.participants;
   p.innerHTML = `<h2 style="margin-top:0">명단 · 접속코드</h2>
     <div class="row"><span class="chip info">등록 ${ps.length}명</span>
-      <span class="chip ${ps.filter(x=>!x.has_code).length?'warn':'ok'}">코드 없음 ${ps.filter(x=>!x.has_code).length}명</span></div>
+      <span class="chip ${ps.filter(x=>!x.has_code).length?'warn':'ok'}">코드 없음 ${ps.filter(x=>!x.has_code).length}명</span>
+      ${ps.some(x=>x.has_selfcheck !== undefined) ? (()=>{ const n = ps.filter(x=>x.has_selfcheck === false).length;
+        return `<span class="chip ${n?'bad':'ok'}">자기점검 없음 ${n}명</span>`; })() : ''}</div>
+    ${ps.filter(x=>x.has_selfcheck === false).length ? `<div class="note bad">
+      <b>자기점검이 연결되지 않은 학생이 있습니다.</b>
+      ${ps.filter(x=>x.has_selfcheck === false).map(x=>esc(x.student_no+' '+(x.name||''))).join(' · ')}<br>
+      학번이 명단과 다르게 적혔을 가능성이 큽니다. <b>수업 전에</b> 확인해 주세요.
+      (그래도 학생 화면은 막히지 않습니다 — 직접 적는 칸으로 바뀝니다.)</div>` : ''}
 
     <h3>1) 명단 올리기</h3>
     <p class="muted">한 줄에 한 명. <b>학번</b> 다음에 <b>이름</b>. 쉼표·탭·빈칸 무엇으로 나눠 써도 됩니다. 이미 있는 학번은 건너뜁니다.</p>
@@ -1071,10 +1089,12 @@ function staffRoster(){
     <div id="codes"></div>
 
     <h3>3) 명단</h3>
-    <div class="scroll"><table><thead><tr><th>학번</th><th>이름</th><th>코드</th>
+    <div class="scroll"><table><thead><tr><th>학번</th><th>이름</th><th>코드</th><th>자기점검</th>
       ${OV.sessions.map(s=>`<th>${s.session_no}</th>`).join('')}</tr></thead>
       <tbody>${ps.map(s=>`<tr><td>${esc(s.student_no)}</td><td>${esc(s.name||'')}</td>
         <td>${s.has_code?'<span class="chip ok">발급</span>':'<span class="chip bad">없음</span>'}</td>
+        <td>${s.has_selfcheck === false ? '<span class="chip bad">없음</span>'
+              : s.has_selfcheck ? '<span class="chip ok">연결</span>' : '<span class="chip">–</span>'}</td>
         ${OV.sessions.map(x=>{ const pr=(s.progress||{})[x.session_no]||{};
           const full = pr.required>0 && pr.done>=pr.required;
           return `<td style="text-align:center">${pr.required? (full?'●':(pr.done?'◐':'○')) : '·'}</td>`; }).join('')}
