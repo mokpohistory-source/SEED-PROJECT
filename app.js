@@ -151,14 +151,24 @@ function shell(title, body, opts={}){
       <span class="spacer"></span>${who}${out}
     </div></header>
     <div class="wrap ${opts.wide?'wide':''}">${body}
-      <div class="foot">SEED 학업실수 기반 자기주도학습 프로그램 · 목포대학교 교육학과 정윤미<br>
+      <div class="foot"><b>SEED</b> 학업실수 기반 자기주도학습 프로그램<br>
+      국립목포대학교 <b>교수학습이러닝센터</b> 학습법 프로그램 · <b>교육학과</b> 박사학위논문 연구 (정윤미)<br>
       이 화면의 모든 내용은 연구 목적으로만 사용되며 무단 복제·배포를 금합니다.</div>
     </div>`;
   const so = $('#signout');
   if(so) so.onclick = ()=>{
-    if(!confirm('나가시겠습니까? 저장한 내용은 그대로 남아 있습니다.')) return;
-    Store.t = null; Store.jwt = null;
-    localStorage.removeItem('seed_refresh'); localStorage.removeItem('seed_jwt_exp');
+    // 지금 보고 있는 화면만 나간다. 선생님이 나가도 학생 로그인은 그대로 둔다.
+    const staff = opts.role === 'staff';
+    const msg = staff
+      ? '선생님 화면에서 나가시겠습니까?\n차시 열림/닫힘과 저장된 내용은 그대로 남습니다.'
+      : '나가시겠습니까? 저장한 내용은 그대로 남아 있습니다.';
+    if(!confirm(msg)) return;
+    if(staff){
+      Store.jwt = null;
+      localStorage.removeItem('seed_refresh'); localStorage.removeItem('seed_jwt_exp');
+    }else{
+      Store.t = null;
+    }
     location.hash = '#/';
   };
 }
@@ -778,7 +788,7 @@ async function viewStaff(tab){
                 ['data','자기점검 불러오기'],['history','고쳐 쓴 자국']]
     .map(([k,l])=>`<button data-tab="${k}" aria-selected="${tab===k}">${l}</button>`).join('');
   shell('선생님', `<div class="tabs">${tabs}</div><div class="panel" id="panel"></div>`,
-        { wide:true, who:'연구자', out:true });
+        { wide:true, who:'연구자', out:true, role:'staff' });
   document.querySelectorAll('.tabs button').forEach(b=> b.onclick = ()=> go('#/t/'+b.dataset.tab));
 
   if(tab==='today')   return staffToday();
