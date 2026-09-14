@@ -94,6 +94,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green);b
 .field{border:1px solid var(--line);border-radius:12px;padding:14px 15px;margin:12px 0;background:#fff}
 .field.done{border-color:#cfe0cf;background:#fcfdfb}
 .field.empty{border-color:#e8ded0}
+/* 차시가 잠겼을 때 — 읽기만 되는 칸. 글씨는 흐려지지 않게 둔다. */
+.field.locked{background:#fbfbfa;border-color:#e3e3df}
+.field.locked textarea,.field.locked input,.field.locked select{
+  background:#f4f4f1;color:#3b3b39;-webkit-text-fill-color:#3b3b39;opacity:1;cursor:default}
+.field.locked .cardpick{opacity:.55}
+.field.locked .cardpick.on{opacity:1}
 .field .fh{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px}
 .field .fh .lab{flex:1;margin:0}
 .field .ft{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}

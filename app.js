@@ -404,12 +404,23 @@ async function paneActivity(no){
     p.innerHTML = `<p class="muted">이 차시에 쓸 칸이 아직 없습니다.</p>`; return;
   }
   const sess = ME.sessions.find(s=>s.session_no==no) || {};
+  // 지금 이 칸을 쓸 수 있는가 — 서버의 seed.writable 과 같은 기준으로 본다.
+  const openFor = w => !!sess.grant ||
+    (w === 'post_session' ? !!sess.post_window_open : !!sess.is_open);
+  const canWrite = f => openFor(f.entry_window || 'in_session');
+  const anyWrite = fields.some(canWrite);
+
   p.innerHTML = `
     <div class="row"><h2 style="margin:0">${no}차시 기록</h2><span class="spacer"></span>
-      <span class="chip" id="draftmark">30초마다 자동 임시 보관</span></div>
-    <p class="muted">칸을 다 쓰고 <b>저장</b>을 눌러야 기록으로 남습니다.
+      ${anyWrite ? '<span class="chip" id="draftmark">30초마다 자동 임시 보관</span>'
+                 : '<span class="chip">읽기 전용</span>'}</div>
+    ${anyWrite
+      ? `<p class="muted">칸을 다 쓰고 <b>저장</b>을 눌러야 기록으로 남습니다.
       쓰다가 창을 닫아도 임시 보관본이 남아 이어서 쓸 수 있어요.
-      잘 모르겠으면 <b>모르겠다는 그 마음을 그대로</b> 적어 주세요. 그것도 자료입니다.</p>
+      잘 모르겠으면 <b>모르겠다는 그 마음을 그대로</b> 적어 주세요. 그것도 자료입니다.</p>`
+      : `<div class="note"><b>이 차시는 잠겼습니다.</b>
+      지금까지 저장한 내용은 그대로 남아 있고 아래에서 다시 볼 수 있습니다.
+      새로 쓰거나 고쳐 쓰는 것만 안 됩니다. 마저 쓸 것이 있으면 선생님께 말씀해 주세요.</div>`}
     ${(data.walls||[]).length ? `<div class="note">이 차시에는 공유벽이 ${data.walls.length}개 있습니다.
       위의 <b>공유벽</b> 탭에서 쓸 수 있어요.</div>` : ''}
     <div id="fields"></div>`;
@@ -418,11 +429,11 @@ async function paneActivity(no){
   fields.forEach(f => {
     const d = STEPS[f.field_id];
     if(d) box.appendChild(h(`<div class="stepdiv"><b>${esc(d.t)}</b>${d.s?`<span>${d.s}</span>`:''}</div>`));
-    box.appendChild(fieldCard(f, { sc, cards, session: sess }));
+    box.appendChild(fieldCard(f, { sc, cards, session: sess, canWrite }));
     const n = NOTES[f.field_id];
     if(n) box.appendChild(h(`<div class="note" style="margin:-4px 0 14px">${n}</div>`));
   });
-  startDraftTimer();
+  if(anyWrite) startDraftTimer(); else stopDraftTimer();
 }
 
 /* 화면을 단계로 끊어 준다. 앱에 저장되는 칸만 여기에 있다.
@@ -585,6 +596,16 @@ function fieldCard(f, ctx){
     }
   });
 
+  // 차시가 잠겼으면 — 내용은 그대로 보이고, 손대지 못하게만 한다.
+  if(ctx.canWrite && !ctx.canWrite(f)){
+    wrap.classList.add('locked');
+    body.querySelectorAll('input,textarea,select,button').forEach(el=>{ el.disabled = true; });
+    const btn = $('.save', wrap); if(btn) btn.remove();
+    $('.ft', wrap).insertAdjacentHTML('beforeend',
+      '<span class="chip">잠김 · 지금은 고쳐 쓸 수 없습니다</span>');
+    return wrap;
+  }
+
   $('.save', wrap).onclick = async (e)=>{
     const v = (read()||'').trim();
     if(!v) return toast('짧게라도 적어야 저장됩니다.', 'bad');
@@ -633,15 +654,41 @@ async function paneWallPick(no, qid){
     : '';
   p.innerHTML = tabs + `<div id="wallbox"><p class="muted">불러오는 중…</p></div>`;
   document.querySelectorAll('[data-q]').forEach(b=> b.onclick = ()=> paneWallPick(no, b.dataset.q));
-  await renderWall(q, $('#wallbox'));
+  const sess = ME.sessions.find(s=>s.session_no==no) || {};
+  await renderWall(q, $('#wallbox'), !!sess.grant || !!sess.is_open);
 }
 
 function wallDoneKey(qid){ return 'seed_wall_done_' + qid; }
 
-async function renderWall(q, box){
+async function renderWall(q, box, canWrite = true){
   const d = await rpc('wall_view', { p_token: Store.t, p_question_id: q.question_id });
   const parts = q.parts || [['line','한 줄']];
   const already = localStorage.getItem(wallDoneKey(q.question_id));
+
+  // 차시가 잠겼으면 — 올라온 글은 그대로 보고, 새로 올리는 것만 막는다.
+  if(!canWrite){
+    box.innerHTML = `
+      <div class="card tight" style="margin:0 0 14px">
+        <h2 style="font-size:17px">${esc(q.prompt)}</h2>
+        <div class="note" style="margin-top:10px"><b>이 차시는 잠겼습니다.</b>
+          지금은 새로 올릴 수 없습니다. 올라온 글은 아래에서 그대로 볼 수 있어요.</div>
+      </div>
+      <div class="row"><b>올라온 글</b><span class="spacer"></span>
+        <button class="btn sm ghost" id="wrefresh">새로 보기</button></div>
+      <div class="wallgrid" id="wposts"></div>`;
+    const g = $('#wposts');
+    const paint = posts => g.innerHTML = (posts||[]).length
+      ? posts.map(p=>`<div class="post">${p.parts.map(x=>`${partLabel(q,x.part_key)}<p>${esc(x.content)}</p>`).join('')}</div>`).join('')
+      : `<p class="muted">아직 열리지 않았습니다. 선생님이 한꺼번에 열면 여기에 뜹니다.</p>`;
+    paint(d.posts);
+    $('#wrefresh').onclick = async (e)=>{
+      busy(btnOf(e), true, '…');
+      const n = await rpc('wall_view', { p_token: Store.t, p_question_id: q.question_id });
+      paint(n.posts); busy(btnOf(e), false);
+    };
+    return;
+  }
+
   if(already && !box.dataset.again){
     box.innerHTML = `
       <div class="card tight" style="margin:0 0 14px;border-color:var(--green)">
@@ -657,7 +704,7 @@ async function renderWall(q, box){
     g.innerHTML = (d.posts||[]).length
       ? d.posts.map(p=>`<div class="post">${p.parts.map(x=>`${partLabel(q,x.part_key)}<p>${esc(x.content)}</p>`).join('')}</div>`).join('')
       : `<p class="muted">아직 열리지 않았습니다. 선생님이 한꺼번에 열면 여기에 뜹니다.</p>`;
-    $('#wagain').onclick = ()=>{ box.dataset.again = '1'; renderWall(q, box); };
+    $('#wagain').onclick = ()=>{ box.dataset.again = '1'; renderWall(q, box, canWrite); };
     $('#wrefresh').onclick = async (e)=>{
       busy(btnOf(e), true, '…');
       const n = await rpc('wall_view', { p_token: Store.t, p_question_id: q.question_id });
