@@ -222,3 +222,50 @@ body.project .btn.ghost{background:transparent;border-color:transparent}
 .cardpick.on{border-color:var(--cc,var(--green));background:color-mix(in srgb, var(--cc,#4b7f52) 9%, #fff)}
 .cardpick.on .cc{color:var(--cc,var(--green-d))}
 .btn.sm.areatab.p{background:var(--cc);border-color:var(--cc)}
+
+/* ---------- 진행 격자 · 학생 기록 보기 (2026-09-16) ---------- */
+.mono{font-family:var(--mono)}
+.seg{display:inline-flex;gap:4px}
+table.grid{font-size:13px;width:auto}
+table.grid th,table.grid td{padding:5px 6px;text-align:center;white-space:nowrap}
+table.grid .sticky{position:sticky;left:0;background:#fff;text-align:left;z-index:2}
+table.grid thead .sticky,table.grid tfoot .sticky{background:#f7f9f5;z-index:3}
+table.grid tfoot th{position:sticky;bottom:0}
+td.gc{min-width:26px;border-left:1px solid #f0f2ec}
+td.gc.done{background:#cfe5cd;color:var(--green-d)}
+td.gc.draft{background:#fbe6b8;color:var(--amber)}
+td.gc.empty{background:#eceee9}
+th.lowc{color:var(--red)}
+.legend2{columns:2 340px;font-size:13.5px}
+.legend2 div{break-inside:avoid;margin:2px 0}
+section.rp{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:14px 0;background:#fff}
+h3.rph{margin:0 0 8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+h4.rses{margin:14px 0 4px;color:var(--green-d)}
+h3.rses.big{margin:26px 0 6px;padding-bottom:4px;border-bottom:2px solid var(--green)}
+.rq{padding:8px 0;border-top:1px dashed var(--line);break-inside:avoid}
+.rq.qblock{border-top:none}
+.rlab{font-size:13.5px;color:var(--ink2);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.rans{white-space:pre-wrap;word-break:break-word;margin-top:3px;font-size:15.5px}
+.rans.empty{color:#9aa294;font-size:14px}
+.rans.sealed{color:var(--ink2);background:#f3f1ea;border-radius:8px;padding:6px 10px;font-size:14px}
+.rmeta{font-size:11.5px;color:#8a9285;margin-top:2px}
+table.rtab td{padding:6px 8px}
+table.rtab td.who{width:110px;white-space:nowrap;font-size:13px;color:var(--ink2)}
+table.rtab tr.miss td,.rq.miss .rlab{opacity:.75}
+table.ttab{font-size:13.5px}
+table.ttab .sticky{position:sticky;left:0;background:#fff;z-index:2;white-space:nowrap}
+table.ttab thead .sticky{background:#f7f9f5;z-index:3}
+table.ttab .cand{margin-bottom:4px}
+.rwall{margin-top:26px}
+ul.wlist{margin:4px 0 0;padding-left:20px}
+ul.wlist li{margin:4px 0;white-space:pre-wrap}
+@media print{
+  .foot{display:none}
+  .scroll{max-height:none!important;overflow:visible!important;border:none}
+  section.rp{border:none;padding:0;margin:0 0 18px}
+  .rans.sealed{display:none}
+  .rq:has(.rans.sealed){display:none}
+  table.ttab,table.grid{font-size:11px}
+  table.ttab .sticky,table.grid .sticky{position:static}
+  th{position:static}
+}

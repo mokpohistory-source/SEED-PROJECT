@@ -198,7 +198,7 @@ async function route(){
   document.body.className = '';
   try{
     if(p[0] === 'wall')  return await viewProject(p[1]);
-    if(p[0] === 't')     return Store.jwt ? await viewStaff(p[1] || 'today') : viewStaffLogin();
+    if(p[0] === 't')     return Store.jwt ? await viewStaff(p[1] || 'today', p.slice(2)) : viewStaffLogin();
     if(p[0] === 's'){
       if(!Store.t){ Store.next = location.hash; return viewLogin(); }
       return await viewStudent(p.slice(1));
@@ -969,19 +969,21 @@ function viewStaffLogin(){
 }
 
 let OV = null;
-async function viewStaff(tab){
+async function viewStaff(tab, sub){
   try{ OV = await srpc('staff_overview', {}); }
   catch(e){ Store.jwt = null; localStorage.removeItem('seed_jwt_exp');
             toast('로그인이 필요합니다. 다시 들어와 주세요.', 'bad'); return viewStaffLogin(); }
 
-  const tabs = [['today','오늘 진행'],['wall','공유벽'],['roster','명단·코드'],
-                ['data','자기점검 불러오기'],['history','고쳐 쓴 자국']]
+  const tabs = [['today','오늘 진행'],['grid','진행 격자'],['read','학생 기록 보기'],['wall','공유벽'],
+                ['roster','명단·코드'],['data','자기점검 불러오기'],['history','고쳐 쓴 자국']]
     .map(([k,l])=>`<button data-tab="${k}" aria-selected="${tab===k}">${l}</button>`).join('');
   shell('선생님', `<div class="tabs">${tabs}</div><div class="panel" id="panel"></div>`,
         { wide:true, who:'연구자', out:true, role:'staff' });
   document.querySelectorAll('.tabs button').forEach(b=> b.onclick = ()=> go('#/t/'+b.dataset.tab));
 
   if(tab==='today')   return staffToday();
+  if(tab==='grid')    return staffGrid(sub);
+  if(tab==='read')    return staffRead(sub);
   if(tab==='wall')    return staffWall();
   if(tab==='roster')  return staffRoster();
   if(tab==='data')    return staffData();
@@ -1299,6 +1301,309 @@ function staffHistory(){
     }catch(err){ toast(err.message, 'bad'); }
     busy(btnOf(e), false);
   };
+}
+
+/* ---------------------------------------------------------------------
+   진행 격자 — 학생 × 칸. 저장 여부만 본다(내용 없음). 수업 중 큰 화면에 띄워도 된다.
+   --------------------------------------------------------------------- */
+function curSession(){
+  const ss = (OV && OV.sessions) || [];
+  const open = ss.filter(s=>s.is_open).map(s=>s.session_no);
+  return open[0] || todaySession(ss) || 1;
+}
+function sessionPicker(id, cur){
+  return `<select id="${id}" style="max-width:320px">${(OV.sessions||[]).map(s=>
+    `<option value="${s.session_no}" ${s.session_no==cur?'selected':''}>${s.session_no}차시 · ${esc(s.title||'')}</option>`).join('')}</select>`;
+}
+let gridHideNames = false;
+async function staffGrid(sub){
+  const p = $('#panel');
+  const n = +(sub && sub[0]) || curSession();
+  p.innerHTML = `<div class="row no-print"><h2 style="margin:0">진행 격자</h2><span class="spacer"></span>
+      ${sessionPicker('gses', n)}
+      <button class="btn sm" id="gname">${gridHideNames?'이름 보이기':'이름 가리기'}</button>
+      <button class="btn sm" id="gre">새로 고침</button></div>
+    <p class="muted no-print">초록 = 저장함 · 노랑 = 쓰는 중(임시 보관본만 있음) · 회색 = 아직 안 씀.
+      <b>내용은 보이지 않습니다.</b> 세로로 회색이 몰린 줄이 “다들 막힌 칸”입니다.</p>
+    <div id="gbox"><p class="muted">불러오는 중…</p></div>`;
+  $('#gses').onchange = ()=> go('#/t/grid/'+$('#gses').value);
+  $('#gre').onclick = ()=> staffGrid([n]);
+  $('#gname').onclick = ()=>{ gridHideNames = !gridHideNames; staffGrid([n]); };
+  let d;
+  try{ d = await srpc('staff_progress_grid', { p_session: n }); }
+  catch(e){ $('#gbox').innerHTML = needSql(e); return; }
+  const F = d.fields || [], R = d.rows || [];
+  if(!F.length){ $('#gbox').innerHTML = `<p class="muted">이 차시에는 저장 칸이 없습니다.</p>`; return; }
+  const col = F.map((f,i)=>({ ...f, no: i+1 }));
+  const cnt = col.map(f=> R.filter(r=>(r.cells||{})[f.field_id]==='done').length);
+  const sym = { done:'●', draft:'◐', empty:'' };
+  $('#gbox').innerHTML = `
+    <div class="scroll grid-wrap" style="max-height:70vh"><table class="grid">
+      <thead><tr><th class="sticky">학번${gridHideNames?'':' · 이름'}</th>
+        ${col.map(f=>`<th title="${esc(f.field_id+' '+f.label)}">${f.qual_point?'★':''}${f.no}</th>`).join('')}
+        <th>계</th></tr></thead>
+      <tbody>${R.map(r=>{
+        const full = r.required>0 && r.done>=r.required;
+        return `<tr><td class="sticky"><span class="mono">${esc(r.student_no)}</span>${gridHideNames?'':' '+esc(r.name||'')}</td>
+          ${col.map(f=>{ const c=(r.cells||{})[f.field_id]||'empty';
+            return `<td class="gc ${c}" title="${esc(f.field_id)}">${sym[c]}</td>`; }).join('')}
+          <td><span class="chip ${full?'ok':r.done>0?'warn':'bad'}">${r.done||0}/${r.required||0}</span></td></tr>`;
+      }).join('')}</tbody>
+      <tfoot><tr><th class="sticky">쓴 사람</th>${cnt.map(c=>`<th class="${c<R.length?'lowc':''}">${c}</th>`).join('')}<th>${R.length}명</th></tr></tfoot>
+    </table></div>
+    <h3>칸 번호</h3>
+    <div class="legend2">${col.map(f=>`<div><b>${f.qual_point?'★':''}${f.no}</b> <span class="mono">${esc(f.field_id)}</span>
+      ${esc(f.label)}${f.entry_window==='post_session'?' <span class="chip">회기 후</span>':''}</div>`).join('')}</div>`;
+}
+function needSql(e){
+  const m = String(e && e.message || e);
+  const missing = /Could not find the function|schema cache|does not exist|PGRST/i.test(m);
+  return `<div class="note bad"><b>불러오지 못했습니다.</b> ${esc(m)}
+    ${missing ? `<br>Supabase에 <b>SEED_v7_08_기록보기_20260916.sql</b>을 아직 실행하지 않은 것 같습니다.
+      SQL Editor에서 실행한 뒤 이 화면을 새로 고침해 주세요.` : ''}</div>`;
+}
+
+/* ---------------------------------------------------------------------
+   학생 기록 보기 — 연구자 전용. 차시별 · 학생별 · 전체 · Target 모아보기
+   #/t/read/session/2 · #/t/read/student/193710 · #/t/read/all · #/t/read/target
+   --------------------------------------------------------------------- */
+const PTYPE_KO = { regular:'정규', alternate_session:'별도회기', individual_makeup:'개별보강' };
+const TARGET_FIELDS = ['S1_04_d','S2_05','S2_06_a','S2_06_b','S3_04','S3_05','S4_05'];
+let readUnseal = {};            // 이번에 펼친 봉인 칸 (학번|칸)
+let readUnsealAll = false;
+function readLayout(v){
+  try{ if(v){ localStorage.setItem('seed_read_layout', v); return v; }
+       return localStorage.getItem('seed_read_layout') || 'person'; }catch(e){ return v || 'person'; }
+}
+
+async function staffRead(sub){
+  const p = $('#panel');
+  const mode = (sub && sub[0]) || 'session';
+  const arg  = sub && sub[1];
+  const ps = OV.participants || [];
+  const sesNo = mode==='session' ? (+arg || curSession()) : null;
+  const sno   = mode==='student' ? (arg || (ps[0]||{}).student_no || '') : null;
+  const layout = readLayout();
+
+  const modeBtn = (k,l,h)=>`<button class="btn sm ${mode===k?'p':''}" data-go="${h}">${l}</button>`;
+  p.innerHTML = `
+    <div class="row no-print"><h2 style="margin:0">학생 기록 보기</h2><span class="spacer"></span>
+      ${modeBtn('session','차시별','#/t/read/session/'+(sesNo||curSession()))}
+      ${modeBtn('student','학생별','#/t/read/student/'+(sno||(ps[0]||{}).student_no||''))}
+      ${modeBtn('all','전체','#/t/read/all')}
+      ${modeBtn('target','Target 모아보기','#/t/read/target')}</div>
+    <div class="row no-print" style="margin-top:10px">
+      ${mode==='session' ? sessionPicker('rses', sesNo) : ''}
+      ${mode==='student' ? `<select id="rsno" style="max-width:320px">${ps.map(x=>
+          `<option value="${esc(x.student_no)}" ${x.student_no===sno?'selected':''}>${esc(x.student_no)} ${esc(x.name||'')}</option>`).join('')}</select>` : ''}
+      ${mode==='session' || mode==='all' ? `<span class="seg">
+          <button class="btn sm ${layout==='person'?'p':''}" data-lay="person">사람별로 묶기</button>
+          <button class="btn sm ${layout==='question'?'p':''}" data-lay="question">문항별로 묶기</button></span>` : ''}
+      <span class="spacer"></span>
+      <button class="btn sm" id="rcsv">CSV 내려받기 (엑셀)</button>
+      <button class="btn sm p" id="rprint">인쇄 · PDF로 저장</button></div>
+    <div class="note warn no-print">연구 자료입니다. 화면을 띄워 둔 채 자리를 비우지 마시고, 인쇄물·파일은 잠금 폴더에 보관하세요.
+      <b>이 화면은 읽기만 합니다</b> — 여기서 학생 기록이 바뀌거나 지워지지 않습니다.</div>
+    <div id="rbox"><p class="muted">불러오는 중…</p></div>`;
+
+  p.querySelectorAll('[data-go]').forEach(b=> b.onclick = ()=> go(b.dataset.go));
+  p.querySelectorAll('[data-lay]').forEach(b=> b.onclick = ()=>{ readLayout(b.dataset.lay); staffRead(sub); });
+  if($('#rses')) $('#rses').onchange = ()=> go('#/t/read/session/'+$('#rses').value);
+  if($('#rsno')) $('#rsno').onchange = ()=> go('#/t/read/student/'+encodeURIComponent($('#rsno').value));
+
+  let d;
+  try{
+    d = await srpc('staff_read_records', {
+      p_session: mode==='session' ? sesNo : null,
+      p_student_no: mode==='student' ? decodeURIComponent(sno) : null });
+  }catch(e){ $('#rbox').innerHTML = needSql(e); return; }
+
+  const title = mode==='session' ? `${sesNo}차시 · ${((d.sessions||[])[0]||{}).title||''}`
+              : mode==='student' ? `${decodeURIComponent(sno)} ${((d.people||[])[0]||{}).name||''} · 1~9차시`
+              : mode==='all' ? '전체 학생 · 전체 차시' : 'Target 모아보기';
+  const head = `<div class="only-print" style="display:none"><b>SEED 학생 기록 — ${esc(title)}</b><br>
+    <span style="font-size:12px">출력 ${new Date().toLocaleString('ko-KR')} · 연구 자료입니다. 인쇄물을 두고 다니지 마십시오.</span></div>`;
+
+  const draw = ()=>{
+    let body;
+    if(mode==='target') body = renderTarget(d);
+    else if((mode==='session' || mode==='all') && layout==='question') body = renderByQuestion(d);
+    else body = renderByPerson(d, mode);
+    const wall = (mode==='session' || mode==='all') ? renderWallBlock(d) : '';
+    const sealedCount = countSealed(d);
+    $('#rbox').innerHTML = head + `<h3 class="no-print" style="margin-top:6px">${esc(title)}</h3>`
+      + (sealedCount ? `<div class="note no-print">🔒 1차시 시작점 문장(S1_QP) <b>${sealedCount}건</b>은 접혀 있습니다.
+          9차시 전에는 읽지 않기를 권합니다(개입 통제). 접힌 칸은 인쇄·CSV에서도 빠집니다.
+          <button class="btn sm" id="unsealall">봉인 칸 모두 펼치기</button></div>` : '')
+      + body + wall;
+    $('#rbox').querySelectorAll('[data-unseal]').forEach(b=> b.onclick = ()=>{ readUnseal[b.dataset.unseal] = true; draw(); });
+    const ua = $('#unsealall');
+    if(ua) ua.onclick = ()=>{
+      if(!confirm('시작점 문장을 모두 펼칩니다.\n9차시 전에 읽으면 진행이 그쪽으로 기울 수 있습니다. 계속할까요?')) return;
+      readUnsealAll = true; draw();
+    };
+  };
+  draw();
+
+  $('#rprint').onclick = ()=> print();
+  const slug = mode==='session' ? `session${sesNo}` : mode==='student' ? `student${decodeURIComponent(sno)}` : mode;
+  $('#rcsv').onclick = ()=> downloadCSV(d, mode, slug);
+}
+
+/* ---- 공통 도우미 ---- */
+function isSealed(d, f, sno){
+  return f.field_id === 'S1_QP' && !d.seal_released && !readUnsealAll && !readUnseal[sno+'|'+f.field_id];
+}
+function countSealed(d){
+  if(d.seal_released || readUnsealAll) return 0;
+  let n = 0;
+  (d.people||[]).forEach(p=>{ if(p.answers && p.answers.S1_QP && !readUnseal[p.student_no+'|S1_QP']) n++; });
+  return (d.fields||[]).some(f=>f.field_id==='S1_QP') ? n : 0;
+}
+function fieldTags(f){
+  return `${f.qual_point?'<span class="chip info">★ 앵커</span>':''}`
+       + `${f.version_note && f.version_note.startsWith('★') ? `<span class="chip ok">${esc(f.version_note)}</span>` : ''}`
+       + `${f.sensitive?'<span class="chip bad">민감</span>':''}`
+       + `${f.entry_window==='post_session'?'<span class="chip">회기 후</span>':''}`
+       + `${f.active===false?'<span class="chip">폐지된 칸</span>':''}`;
+}
+function ansMeta(a){
+  if(!a) return '';
+  const bits = [];
+  if(a.revision > 1) bits.push(`고쳐 씀 ${a.revision-1}번`);
+  if(a.participation_type && a.participation_type!=='regular') bits.push(PTYPE_KO[a.participation_type]||a.participation_type);
+  if(a.input_mode==='retro_entry') bits.push('소급 입력');
+  bits.push('저장 '+fmtTime(a.saved_at));
+  return `<div class="rmeta">${bits.map(esc).join(' · ')}</div>`;
+}
+function ansHTML(d, f, person){
+  const a = (person.answers||{})[f.field_id];
+  if(!a){
+    const dr = (person.drafts||[]).includes(f.field_id);
+    return `<div class="rans empty">— 쓰지 않음${dr?' <span class="chip warn">쓰는 중(임시 보관본 있음)</span>':''}</div>`;
+  }
+  if(isSealed(d, f, person.student_no)){
+    return `<div class="rans sealed">🔒 봉인된 칸입니다. <button class="btn sm" data-unseal="${esc(person.student_no+'|'+f.field_id)}">그래도 펼쳐 보기</button></div>`;
+  }
+  return `<div class="rans">${esc(a.value)}</div>${ansMeta(a)}`;
+}
+function sessTitle(d, n){ const s = (d.sessions||[]).find(x=>x.session_no==n); return s ? `${n}차시 · ${s.title}` : `${n}차시`; }
+
+/* ---- 사람별 ---- */
+function renderByPerson(d, mode){
+  const F = d.fields||[], P = d.people||[];
+  if(!P.length) return `<p class="muted">학생이 없습니다.</p>`;
+  const bySes = {};
+  F.forEach(f=>{ (bySes[f.session_no] = bySes[f.session_no] || []).push(f); });
+  const sesList = Object.keys(bySes).map(Number).sort((a,b)=>a-b);
+  const multi = sesList.length > 1;
+  return P.map(p=>{
+    const done = F.filter(f=>(p.answers||{})[f.field_id]).length;
+    const inner = sesList.map(n=>{
+      const fs = bySes[n];
+      const dn = fs.filter(f=>(p.answers||{})[f.field_id]).length;
+      if(mode==='all' && dn===0) return '';          // 전체 보기에서는 아무것도 안 쓴 차시를 줄인다
+      return `${multi?`<h4 class="rses">${esc(sessTitle(d,n))} <span class="muted">(${dn}/${fs.length})</span></h4>`:''}
+        ${fs.map(f=>`<div class="rq ${(p.answers||{})[f.field_id]?'':'miss'}">
+          <div class="rlab"><span class="step">${esc(f.step||'')}</span> ${esc(f.label)} <span class="mono muted">${esc(f.field_id)}</span> ${fieldTags(f)}</div>
+          ${ansHTML(d, f, p)}</div>`).join('')}`;
+    }).join('');
+    return `<section class="rp"><h3 class="rph"><span class="mono">${esc(p.student_no)}</span> ${esc(p.name||'')}
+        ${p.status==='withdrawn'?'<span class="chip bad">철회</span>':''}
+        <span class="chip ${done===F.length?'ok':done?'warn':'bad'}">${done} / ${F.length}칸</span></h3>
+      ${inner || `<p class="muted">저장한 기록이 없습니다.</p>`}</section>`;
+  }).join('');
+}
+
+/* ---- 문항별 (한 칸에 대한 모든 학생의 답을 나란히) ---- */
+function renderByQuestion(d){
+  const F = d.fields||[], P = d.people||[];
+  let lastSes = null;
+  return F.map(f=>{
+    const n = P.filter(p=>(p.answers||{})[f.field_id]).length;
+    const sesHead = (f.session_no !== lastSes) ? `<h3 class="rses big">${esc(sessTitle(d, f.session_no))}</h3>` : '';
+    lastSes = f.session_no;
+    return `${sesHead}<section class="rq qblock">
+      <div class="rlab"><span class="step">${esc(f.step||'')}</span> <b>${esc(f.label)}</b>
+        <span class="mono muted">${esc(f.field_id)}</span> ${fieldTags(f)} <span class="chip">${n}/${P.length}명</span></div>
+      <table class="rtab"><tbody>${P.map(p=>`<tr class="${(p.answers||{})[f.field_id]?'':'miss'}">
+        <td class="who"><span class="mono">${esc(p.student_no)}</span><br>${esc(p.name||'')}</td>
+        <td>${ansHTML(d, f, p)}</td></tr>`).join('')}</tbody></table></section>`;
+  }).join('');
+}
+
+/* ---- Target 모아보기 ---- */
+function renderTarget(d){
+  const F = (d.fields||[]);
+  const cols = TARGET_FIELDS.map(id=>F.find(f=>f.field_id===id)).filter(Boolean);
+  const P = d.people||[];
+  return `<p class="muted no-print">사전 자기점검에서 나온 Target 후보와, 학생이 1~4차시에 직접 적은 Target·동반 반응을 한 줄에 놓았습니다.
+      Target은 <b>v1(2차시) → review note(3차시) → final(4차시)</b> 순으로 다듬어집니다.</p>
+    <div class="scroll" style="max-height:none"><table class="ttab">
+    <thead><tr><th class="sticky">학번 · 이름</th><th>자기점검 Target 후보<br><span class="muted">(C·M·L 4점 이상)</span></th>
+      ${cols.map(f=>`<th>${esc(f.session_no+'차시')}<br>${esc(f.label)}<br><span class="mono muted">${esc(f.field_id)}</span></th>`).join('')}</tr></thead>
+    <tbody>${P.map(p=>{
+      const sc = p.selfcheck;
+      const cand = sc && Array.isArray(sc.target_candidates) && sc.target_candidates.length
+        ? sc.target_candidates.map(c=>`<div class="cand"><b class="mono">${esc(c.item_code)}</b> ${esc(c.text||'')} <span class="muted">(${esc(c.score)})</span></div>`).join('')
+        : `<span class="muted">${sc ? '없음' : '자기점검 미연결'}</span>`;
+      return `<tr><td class="sticky"><span class="mono">${esc(p.student_no)}</span><br>${esc(p.name||'')}</td>
+        <td style="min-width:220px">${cand}</td>
+        ${cols.map(f=>`<td style="min-width:200px">${ansHTML(d, f, p)}</td>`).join('')}</tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+
+/* ---- 공유벽 (무기명, 공개된 글만) ---- */
+function renderWallBlock(d){
+  const W = (d.wall||[]).filter(w=>(w.posts||[]).length);
+  if(!W.length) return '';
+  return `<section class="rwall"><h3>공유벽 — 공개된 글 (무기명)</h3>
+    <p class="muted">누가 썼는지와 잇지 않습니다. 미공개 글과 아직 열지 않은 글은 나오지 않습니다.</p>
+    ${W.map(w=>`<div class="rq"><div class="rlab"><b>${esc(w.session_no+'차시 · '+w.prompt)}</b>
+        <span class="chip">${w.posts.length}개</span></div>
+      <ul class="wlist">${w.posts.map(post=>`<li>${post.map(x=>
+        `${(w.parts||[]).length>1?`<b>${esc(((w.parts||[]).find(pp=>pp[0]===x.part_key)||[,x.part_key])[1])}</b> `:''}${esc(x.content)}`).join('<br>')}</li>`).join('')}</ul></div>`).join('')}
+  </section>`;
+}
+
+/* ---- CSV (엑셀에서 한글이 깨지지 않도록 BOM 포함) ---- */
+function csvCell(v){ const s = String(v==null?'':v); return /[",\r\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }
+function downloadCSV(d, mode, slug){
+  const F = d.fields||[], P = d.people||[];
+  let rows;
+  if(mode==='target'){
+    const cols = TARGET_FIELDS.map(id=>F.find(f=>f.field_id===id)).filter(Boolean);
+    rows = [['학번','이름','자기점검 Target 후보', ...cols.map(f=>`${f.field_id} ${f.label}`)]];
+    P.forEach(p=>{
+      const sc = p.selfcheck;
+      const cand = sc && sc.target_candidates ? sc.target_candidates.map(c=>`${c.item_code}(${c.score}) ${c.text||''}`).join(' / ') : '';
+      rows.push([p.student_no, p.name||'', cand, ...cols.map(f=>{
+        const a = (p.answers||{})[f.field_id];
+        return !a ? '' : isSealed(d,f,p.student_no) ? '(봉인)' : a.value; })]);
+    });
+  }else{
+    rows = [['학번','이름','차시','칸 번호','칸 이름','내용','저장 횟수','참여 형태','입력 방식','저장 시각']];
+    P.forEach(p=> F.forEach(f=>{
+      const a = (p.answers||{})[f.field_id];
+      const sealed = a && isSealed(d,f,p.student_no);
+      rows.push([p.student_no, p.name||'', f.session_no, f.field_id, f.label,
+        !a ? '' : sealed ? '(봉인 — 9차시 전 비공개)' : a.value,
+        a ? a.revision : 0,
+        a ? (PTYPE_KO[a.participation_type]||a.participation_type||'') : '',
+        a ? (a.input_mode==='retro_entry'?'소급 입력':'실시간') : '',
+        a ? new Date(a.saved_at).toLocaleString('ko-KR') : '(쓰지 않음)']);
+    }));
+  }
+  const text = '﻿' + rows.map(r=>r.map(csvCell).join(',')).join('\r\n');
+  const blob = new Blob([text], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  const today = new Date(); const ymd = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+  a.href = URL.createObjectURL(blob);
+  // 파일 이름은 영문으로 둔다(일부 브라우저가 한글 이름을 'download'로 바꿔 버림)
+  a.download = `SEED_records_${String(slug).replace(/[^0-9A-Za-z-]/g,'')}_${ymd}.csv`;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  toast('CSV 파일을 내려받았습니다.', 'ok');
 }
 
 /* =====================================================================
