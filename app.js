@@ -429,7 +429,7 @@ async function paneActivity(no){
   fields.forEach(f => {
     const d = STEPS[f.field_id];
     if(d) box.appendChild(h(`<div class="stepdiv"><b>${esc(d.t)}</b>${d.s?`<span>${d.s}</span>`:''}</div>`));
-    box.appendChild(fieldCard(f, { sc, cards, session: sess, canWrite }));
+    box.appendChild(fieldCard(f, { sc, cards, session: sess, canWrite, fields }));
     const n = NOTES[f.field_id];
     if(n) box.appendChild(h(`<div class="note" style="margin:-4px 0 14px">${n}</div>`));
   });
@@ -497,6 +497,30 @@ function fieldCard(f, ctx){
       const a = core.value, b = withs.value;
       if(!a || !b) return '';
       return `중심: ${AREA_SHORT[a]} / 함께: ${AREA_SHORT[b]}`;
+    };
+  } else if(/_RF_[ac]$/.test(f.field_id)){
+    // 회기 마무리 성찰 — 오늘 쓴 칸 중에서 고른다. 목록은 그 차시 칸에서 만든다.
+    const opts = (ctx.fields || []).filter(x => !/_RF_[a-d]$/.test(x.field_id));
+    const cur = (start.match(/^S\d_[A-Za-z0-9_]+/) || [])[0] || '';
+    const etc = '기타';
+    body.innerHTML = `
+      <select id="i_${f.field_id}">
+        <option value="">고르세요</option>
+        ${opts.map(o=>`<option value="${esc(o.field_id)}" ${o.field_id===cur?'selected':''}>${esc((o.step?o.step+'. ':'')+o.label)}</option>`).join('')}
+        <option value="${etc}" ${start && !cur ? 'selected' : ''}>그 밖의 활동 (직접 적기)</option>
+      </select>
+      <input type="text" id="x_${f.field_id}" style="margin-top:8px;display:none"
+             value="${esc(cur ? '' : start)}" placeholder="어떤 활동이었는지 짧게 적어 주세요">
+      <p class="hint">오늘 앱에 쓴 칸 중에서 고릅니다. 워크북이나 활동 중에 있었던 것이면 <b>그 밖의 활동</b>을 고르고 직접 적어 주세요.</p>`;
+    const selEl = $(`#i_${f.field_id}`, body), xEl = $(`#x_${f.field_id}`, body);
+    const syncEtc = ()=>{ xEl.style.display = selEl.value === etc ? '' : 'none'; };
+    selEl.addEventListener('change', syncEtc); syncEtc();
+    read = ()=>{
+      const v = selEl.value;
+      if(!v) return '';
+      if(v === etc) return xEl.value.trim();
+      const o = opts.find(x=>x.field_id===v) || {};
+      return `${v} · ${o.label || ''}`.trim();
     };
   } else if(f.input_type === 'select'){
     body.innerHTML = sel('i_'+f.field_id, AREA_ORDER, areaOf(start));
