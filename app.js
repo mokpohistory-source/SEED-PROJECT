@@ -1437,6 +1437,7 @@ async function staffRead(sub){
           <button class="btn sm ${layout==='person'?'p':''}" data-lay="person">사람별로 묶기</button>
           <button class="btn sm ${layout==='question'?'p':''}" data-lay="question">문항별로 묶기</button></span>` : ''}
       <span class="spacer"></span>
+      ${mode==='session' && (sesNo===6 || sesNo===7) ? `<button class="btn sm p" id="rplan">📱 계획지 모아 PDF (A4에 2명)</button>` : ''}
       <button class="btn sm" id="rcsv">CSV 내려받기 (엑셀)</button>
       <button class="btn sm p" id="rprint">인쇄 · PDF로 저장</button></div>
     <div class="note warn no-print">연구 자료입니다. 화면을 띄워 둔 채 자리를 비우지 마시고, 인쇄물·파일은 잠금 폴더에 보관하세요.
@@ -1483,6 +1484,7 @@ async function staffRead(sub){
   draw();
 
   $('#rprint').onclick = ()=> print();
+  if($('#rplan')) $('#rplan').onclick = ()=> staffPlanPDF(sesNo, $('#rplan'));
   const slug = mode==='session' ? `session${sesNo}` : mode==='student' ? `student${decodeURIComponent(sno)}` : mode;
   $('#rcsv').onclick = ()=> downloadCSV(d, mode, slug);
 }
@@ -1830,9 +1832,9 @@ function showPlan(cv, empty, round){
       <div style="display:grid;gap:8px">
         <button class="btn p wide" data-share>휴대폰에 저장 · 보내기</button>
         <a class="btn wide" data-png href="${url}" download="${fname}.png">이미지(PNG)로 내려받기</a>
-        <button class="btn wide" data-pdf>PDF로 저장</button>
       </div>
-      <p class="hint">아이폰에서 내려받기가 안 되면 위 그림을 <b>길게 눌러 ‘사진에 저장’</b>하세요.
+      <p class="hint">휴대폰에는 <b>그림(PNG)</b>으로 저장됩니다. 저장이 안 되면 위 그림을 <b>길게 눌러 ‘이미지 저장 · 사진에 저장’</b>하세요.
+        카카오톡 안에서 열었다면 오른쪽 위 메뉴의 <b>‘다른 브라우저로 열기’</b>를 누른 뒤 다시 해 보세요.
         저장한 그림을 <b>잠금화면 · 배경화면</b>으로 두면 48시간 동안 계속 보입니다.</p>
     </div></div>`);
   document.body.appendChild(ov);
@@ -1848,17 +1850,48 @@ function showPlan(cv, empty, round){
       }else{ $('[data-png]', ov).click(); }
     }catch(e){ if(e && e.name !== 'AbortError') $('[data-png]', ov).click(); }
   };
-  $('[data-pdf]', ov).onclick = async ()=>{
-    const b = $('[data-pdf]', ov); b.disabled = true; b.textContent = 'PDF 만드는 중…';
-    try{
-      if(!window.jspdf){
-        await new Promise((ok, no)=>{ const s = document.createElement('script');
-          s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
-      }
-      const pdf = new window.jspdf.jsPDF({ unit:'mm', format:[90, 160], orientation:'portrait' });
-      pdf.addImage(cv.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 90, 160);
-      pdf.save(fname + '.pdf');
-    }catch(e){ toast('PDF를 만들지 못했습니다. 이미지로 저장해 주세요.', 'bad'); }
-    b.disabled = false; b.textContent = 'PDF로 저장';
-  };
+}
+
+/* ---- 선생님: 6·7차시 계획지 한꺼번에 PDF (A4 한 장에 2명) ----
+   학생이 저장한 문장만 쓴다(임시 보관본 제외). 학생 화면의 계획지와 같은 그림. */
+async function loadJsPDF(){
+  if(window.jspdf) return;
+  await new Promise((ok, no)=>{ const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
+}
+async function staffPlanPDF(no, btn){
+  const spec = PLAN_SPEC[no]; if(!spec) return;
+  const old = btn.textContent; btn.disabled = true; btn.textContent = '계획지 만드는 중…';
+  try{
+    const d  = await srpc('staff_read_records', { p_session: no, p_student_no: null });
+    const d5 = await srpc('staff_read_records', { p_session: 5,  p_student_no: null }).catch(()=>({people:[]}));
+    const s5 = {}; (d5.people||[]).forEach(p=>{ const a = (p.answers||{}).S5_04_a; if(a) s5[p.student_no] = String(a.value||''); });
+    const sess = ((OV && OV.sessions)||[]).find(s=>s.session_no==no) || (d.sessions||[]).find(s=>s.session_no==no) || {};
+    const win = planWindow(sess);
+    const PRE = { S6_02_a:'① ', S6_02_b:'② ', S6_03_a:'장애물 · ', S6_03_b:'대응 · ' };
+    const pages = [], none = [];
+    (d.people||[]).forEach(p=>{
+      const A = p.answers || {};
+      const val = id => A[id] ? String(A[id].value||'').trim() : '';
+      const rows = spec.rows.map(([lab, ids])=>[lab, ids.map(i=>{ const v = val(i); return v ? (ids.length>1 ? (PRE[i]||'') : '') + v : ''; }).filter(Boolean)]);
+      if(!rows.some(r=>r[1].length)){ none.push(p.name || p.student_no); return; }
+      let strat = (s5[p.student_no]||'').split(/\n/)[0].replace(/[,，]\s*$/,'').trim();
+      if(no === 7 && val('S7_02')) strat = (strat ? strat + '  ·  ' : '') + val('S7_02');
+      pages.push(drawPlan({ round: spec.round, win, name: p.name || '', strat, rows }));
+    });
+    if(!pages.length){ toast(`${no}차시 계획을 저장한 학생이 아직 없습니다.`, 'bad'); return; }
+    await loadJsPDF();
+    const pdf = new window.jspdf.jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
+    // A4(210×297)에 90×160 두 장 — 가운데 자르는 선
+    pages.forEach((cv, i)=>{
+      const k = i % 2;
+      if(i > 0 && k === 0) pdf.addPage();
+      const x = k === 0 ? 8 : 107, y = 22;
+      pdf.addImage(cv.toDataURL('image/jpeg', 0.9), 'JPEG', x, y, 95, 169);
+      if(k === 0){ pdf.setDrawColor(180); pdf.setLineDashPattern([2,2], 0); pdf.line(105, 10, 105, 287); }
+    });
+    pdf.save(`SEED_${no}차시_계획지_전체_${pages.length}명.pdf`);
+    toast(`${pages.length}명 계획지를 PDF로 만들었습니다.` + (none.length ? ` 아직 안 쓴 학생 ${none.length}명: ${none.join(', ')}` : ''), 'ok');
+  }catch(e){ toast('계획지를 만들지 못했습니다: ' + (e.message||e), 'bad'); }
+  finally{ btn.disabled = false; btn.textContent = old; }
 }
