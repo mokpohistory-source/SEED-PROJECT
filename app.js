@@ -1088,44 +1088,50 @@ function todaySession(ss){
 function attendDialog(sno, cur){
   const p = $('#panel');
   const back = p.innerHTML;
-  p.innerHTML = `<div class="card" style="max-width:560px">
-    <h2>${esc(sno)} · ${cur}차시 기록</h2>
+  const who = (OV.participants||[]).find(x=>x.student_no===sno) || {};
+  const opt = (arr, v)=> arr.map(([k,l])=>`<option value="${k}" ${k===v?'selected':''}>${l}</option>`).join('');
+  const sessOpts = (OV.sessions||[]).map(s=>`<option value="${s.session_no}" ${s.session_no==cur?'selected':''}>${s.session_no}차시 · ${esc(s.scheduled_date||'')}</option>`).join('');
+  const L = t => `<label class="lab" style="font-size:14px">${t}</label>`;
+  p.innerHTML = `<div class="card" style="max-width:640px">
+    <h2>${esc(sno)} ${esc(who.name||'')} · 운영 기록</h2>
+    <p class="hint">지난 차시도 고를 수 있습니다. 저장하면 새 줄로 쌓이고, 가장 최근 줄이 현재값입니다(지워지지 않음).</p>
     <div class="row" style="gap:12px;margin-top:10px">
-      <div style="flex:1;min-width:180px"><label class="lab" style="font-size:14px">출석</label>
-        <select id="a_att"><option value="present">참석</option><option value="late">지각</option>
-        <option value="absent">결석</option><option value="remote">원격</option></select></div>
-      <div style="flex:1;min-width:180px"><label class="lab" style="font-size:14px">참여 형태</label>
-        <select id="a_ptype"><option value="regular">정규</option><option value="makeup">보강</option>
-        <option value="retro_entry">소급 입력</option></select></div>
-    </div>
+      <div style="flex:1;min-width:180px">${L('차시')}<select id="a_ses">${sessOpts}</select></div>
+      <div style="flex:1;min-width:180px">${L('실제 날짜 (계획과 다를 때)')}<input type="date" id="a_date"></div></div>
     <div class="row" style="gap:12px;margin-top:12px">
-      <div style="flex:1;min-width:180px"><label class="lab" style="font-size:14px">워크북</label>
-        <select id="a_wb"><option value="">—</option><option value="yes">회수함</option><option value="no">미지참</option></select></div>
-      <div style="flex:1;min-width:180px"><label class="lab" style="font-size:14px">스캔</label>
-        <select id="a_scan"><option value="">—</option><option value="yes">스캔함</option><option value="no">아직</option></select></div>
-    </div>
-    <div style="margin-top:12px"><label class="lab" style="font-size:14px">스캔 비고</label>
-      <select id="a_note"><option value="">—</option><option value="all">전체 스캔</option>
-      <option value="folded_skipped">접어 둔 쪽 제외</option><option value="partial">일부만</option>
-      <option value="missing">미지참·분실</option><option value="other">기타</option></select></div>
-    <div style="margin-top:12px"><label class="lab" style="font-size:14px">메모</label>
-      <input type="text" id="a_memo" placeholder="예: 20분 늦게 들어옴"></div>
+      <div style="flex:1;min-width:150px">${L('출석')}<select id="a_att">${opt([['present','참석'],['absent','결석'],['left_early','회기 중 이탈']],'present')}</select></div>
+      <div style="flex:1;min-width:150px">${L('참여 형태')}<select id="a_ptype">${opt([['regular','정규'],['alternate_session','별도회기'],['individual_makeup','개별보강']],'regular')}</select></div>
+      <div style="flex:1;min-width:150px">${L('완료')}<select id="a_comp">${opt([['','—'],['complete','완료'],['core_only','핵심만'],['incomplete','미완료']],'')}</select></div></div>
+    <div class="row" style="gap:12px;margin-top:12px">
+      <div style="flex:1;min-width:150px">${L('워크북')}<select id="a_wb">${opt([['','—'],['yes','회수함'],['no','미지참']],'')}</select></div>
+      <div style="flex:1;min-width:150px">${L('스캔')}<select id="a_scan">${opt([['','—'],['yes','스캔함'],['no','아직']],'')}</select></div>
+      <div style="flex:1;min-width:150px">${L('스캔 비고')}<select id="a_note">${opt([['','—'],['all','전체 스캔'],['folded_skipped','접어 둔 쪽 제외'],['partial','일부만'],['missing','미지참·분실'],['other','기타']],'')}</select></div></div>
+    <div class="row" style="gap:12px;margin-top:12px">
+      <div style="flex:1;min-width:150px">${L('줌 · 원격 참여')}<select id="a_remote">${opt([['','—'],['yes','예'],['no','아니오']],'')}</select></div>
+      <div style="flex:1;min-width:150px">${L('강사 개입')}<select id="a_iv">${opt([['','—'],['yes','예'],['no','아니오']],'')}</select></div>
+      <div style="flex:2;min-width:220px">${L('개입 유형 (학생 글 원문 금지)')}<input type="text" id="a_ivt" placeholder="예: Target 되묻기 1회"></div></div>
+    <div style="margin-top:12px">${L('메모')}<input type="text" id="a_memo" placeholder="예: 20분 늦게 들어옴 / 줌으로 같은 내용 재운영"></div>
     <div class="row end" style="margin-top:16px">
       <button class="btn" id="a_cancel">취소</button>
       <button class="btn p" id="a_save">기록하기</button></div>
   </div>`;
+  const yn = id => $(id).value ? $(id).value==='yes' : null;
   $('#a_cancel').onclick = ()=>{ p.innerHTML = back; staffToday(); };
   $('#a_save').onclick = async (e)=>{
     busy(btnOf(e), true, '저장 중…');
+    const ses = +$('#a_ses').value;
     try{
-      await srpc('staff_set_attendance', { p_student_no: sno, p_session: cur, p_row: {
+      const row = {
         attendance_status: $('#a_att').value, participation_type: $('#a_ptype').value,
-        workbook_collected: $('#a_wb').value ? $('#a_wb').value==='yes' : null,
-        workbook_scanned:  $('#a_scan').value ? $('#a_scan').value==='yes' : null,
+        completion_status: $('#a_comp').value || null,
+        workbook_collected: yn('#a_wb'), workbook_scanned: yn('#a_scan'),
         workbook_scan_note: $('#a_note').value || null,
-        note: $('#a_memo').value || null,
-      }});
-      toast('기록했습니다.', 'ok'); go('#/t/today'); route();
+        remote_breakout: yn('#a_remote'),
+        teacher_chance_used: yn('#a_iv'), teacher_chance_note: $('#a_ivt').value.trim() || null,
+        note: $('#a_memo').value.trim() || null };
+      if($('#a_date').value) row.actual_date = $('#a_date').value;
+      await srpc('staff_set_attendance', { p_student_no: sno, p_session: ses, p_row: row });
+      toast(`${ses}차시 기록을 저장했습니다.`, 'ok'); go('#/t/today'); route();
     }catch(err){ toast(err.message, 'bad'); busy(btnOf(e), false); }
   };
 }
