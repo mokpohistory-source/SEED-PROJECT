@@ -432,7 +432,11 @@ async function paneActivity(no){
     box.appendChild(fieldCard(f, { sc, cards, session: sess, canWrite, fields }));
     const n = NOTES[f.field_id];
     if(n) box.appendChild(h(`<div class="note" style="margin:-4px 0 14px">${n}</div>`));
+    const ck = canWrite(f) ? checkBox(f.field_id) : null;
+    if(ck) box.appendChild(ck);
   });
+  const pc = planCard(Number(no), fields, sess);
+  if(pc) box.appendChild(pc);
   if(anyWrite) startDraftTimer(); else stopDraftTimer();
 }
 
@@ -1675,3 +1679,186 @@ async function viewProject(qid){
 
 /* ---------- 시작 ---------- */
 route();
+
+/* =====================================================================
+   6·7차시 — 쓰고 나서 스스로 점검하기(되묻기) · 나의 계획지(휴대폰 이미지 · PDF)
+   2026-09-30 추가. 학생이 쓴 문장을 고치거나 판정하지 않는다(수칙 1).
+   질문만 보여 주고, 계획지는 학생이 저장한 문장을 그대로 한 장에 모은다.
+   ===================================================================== */
+const CHECKS = {
+  S6_01_a: ['한 과목 · 한 과제 · 한 장면인가요?', '분량(쪽 · 문제 · 분)이 들어 있나요?'],
+  S6_01_b: ['요일과 시각까지 적었나요?', '48시간 구간(오늘 20시 ~ 금요일 20시) 안인가요?'],
+  S6_01_c: ['그 시각에 내가 실제로 있을 곳인가요?'],
+  S6_02_a: ['‘만약’ 자리에 눈에 보이는 신호(시각 · 장소 · 바로 앞 행동)가 있나요? 감정은 넣지 않습니다.', '‘한다’ 자리에 그 자리에서 시작할 첫 행동과 분량이 있나요?'],
+  S6_02_b: ['①과 다른 시간 · 장소 · 직전 행동인가요?'],
+  S6_03_a: ['장애물을 하나만 골랐나요?'],
+  S6_03_b: ['그만두기가 아니라 ‘줄여서 하기’인가요?', '“만약 ___면, ___한다” 모양인가요?'],
+  S6_04:   ['사진 · 메모 · 캡처처럼 남는 것인가요? (“기억하겠다”는 증거가 되지 않습니다)', '“이러면 했다고 본다”는 기준 문장이 있나요?'],
+  S6_05:   ['지금 3분 해 봤다면 — 예상 불편함 → 실제 불편함 숫자(0~10)도 적었나요?', '못 해 봤다면 — 첫 실행 날짜와 시각을 적었나요?'],
+  S6_06:   ['받은 말이 없으면 “없음”이라고 적습니다.'],
+  S7_04_a: ['1차에서 무엇 하나를 바꾸나요? (시각 · 장소 · 크기 · 전략 중 하나)'],
+  S7_04_b: ['‘만약’ 자리에 눈에 보이는 신호가 있나요?', '2차 48시간(수요일 20시 ~ 금요일 20시) 안인가요?'],
+  S7_04_c: ['1차에서 실제로 걸렸던 것을 먼저 적었나요?', '대응이 ‘줄여서 하기’인가요?'],
+  S7_04_d: ['남는 것 + “이러면 했다고 본다” 기준이 있나요?'],
+};
+function checkBox(fid){
+  const q = CHECKS[fid]; if(!q) return null;
+  return h(`<details class="note" style="margin:-4px 0 14px;background:#fbfaf3;border-color:#c9b458">
+    <summary style="cursor:pointer;font-weight:700;color:#6b5a14">쓰고 나서 스스로 점검 (${q.length})</summary>
+    <ul style="margin:8px 0 0 18px;padding:0">${q.map(x=>`<li style="margin:3px 0">${esc(x)}</li>`).join('')}</ul>
+    <p class="hint" style="margin-top:6px">정답을 맞히는 질문이 아닙니다. 아니라면 고칠지 말지는 내가 정합니다.</p></details>`);
+}
+
+const PLAN_SPEC = {
+  6: { round:'1차', rows:[
+        ['무엇을', ['S6_01_a']], ['언제', ['S6_01_b']], ['어디서', ['S6_01_c']],
+        ['만약 → 나는', ['S6_02_a','S6_02_b']], ['막히면 (장애물 → 대응)', ['S6_03_a','S6_03_b']],
+        ['했다고 볼 기준', ['S6_04']], ['실행 약속', ['S6_05']] ] },
+  7: { round:'2차', rows:[
+        ['바꿀 것 하나', ['S7_04_a']], ['만약 → 나는', ['S7_04_b']],
+        ['막히면 (장애물 → 대응)', ['S7_04_c']], ['했다고 볼 기준', ['S7_04_d']] ] },
+};
+function planWindow(sess){
+  // 회기 날짜 20:00 ~ 이틀 뒤 20:00
+  const d = sess && sess.scheduled_date ? new Date(sess.scheduled_date + 'T00:00:00') : null;
+  if(!d || isNaN(d)) return '';
+  const e = new Date(d.getTime() + 2*86400000), W = '일월화수목금토';
+  const f = x => `${x.getMonth()+1}/${x.getDate()}(${W[x.getDay()]})`;
+  return `${f(d)} 20:00 ~ ${f(e)} 20:00`;
+}
+function planCard(no, fields, sess){
+  const spec = PLAN_SPEC[no]; if(!spec) return null;
+  const c = h(`<div class="card" style="margin-top:22px;border:2px solid var(--green)">
+    <h3 style="margin:0 0 6px">📱 나의 ${spec.round} 계획지</h3>
+    <p class="muted" style="margin:0 0 10px">위 칸을 <b>저장한 뒤</b> 누르세요. 내가 쓴 문장을 그대로 한 장에 모읍니다.
+      <b>휴대폰 사진으로 저장</b>해 배경화면이나 즐겨찾기에 두면 48시간 동안 잊지 않습니다.</p>
+    <button class="btn p wide" id="planmake">내 계획지 만들기</button></div>`);
+  $('#planmake', c).onclick = ()=> makePlan(no, fields, sess).catch(e=>toast('계획지를 만들지 못했습니다: ' + (e.message||e), 'bad'));
+  return c;
+}
+function planVal(fid, fields){
+  const el = document.getElementById('i_' + fid);
+  if(el && 'value' in el && String(el.value).trim()) return String(el.value).trim();
+  const f = fields.find(x=>x.field_id===fid);
+  return f ? String(f.value != null ? f.value : (f.draft || '')).trim() : '';
+}
+async function makePlan(no, fields, sess){
+  const spec = PLAN_SPEC[no];
+  let strat = '';
+  try{
+    const d5 = await rpc('seed_session_fields', { p_token: Store.t, p_session: 5 });
+    const m = (d5.fields||[]).find(x=>x.field_id==='S5_04_a');
+    strat = m ? String(m.value != null ? m.value : (m.draft||'')).split(/\n/)[0].replace(/[,，]\s*$/,'').trim() : '';
+  }catch(e){}
+  if(no === 7){
+    const k = planVal('S7_02', fields); if(k) strat = (strat ? strat + '  ·  ' : '') + k;
+  }
+  const PRE = { S6_02_a:'① ', S6_02_b:'② ', S6_03_a:'장애물 · ', S6_03_b:'대응 · ' };
+  const rows = spec.rows.map(([lab, ids])=>[lab, ids.map(i=>{ const v = planVal(i, fields); return v ? (ids.length > 1 ? (PRE[i]||'') : '') + v : ''; }).filter(Boolean)]);
+  const empty = rows.filter(r=>!r[1].length).map(r=>r[0]);
+  const canvas = drawPlan({ round: spec.round, win: planWindow(sess), name: (ME && ME.name) || '', strat, rows });
+  showPlan(canvas, empty, spec.round);
+}
+function wrapText(ctx, text, maxW){
+  const out = [];
+  String(text).split(/\n/).forEach(par=>{
+    let line = '';
+    for(const ch of par){
+      const t = line + ch;
+      if(ctx.measureText(t).width > maxW && line){ out.push(line); line = ch.trim() ? ch : ''; }
+      else line = t;
+    }
+    out.push(line);
+  });
+  return out;
+}
+function drawPlan(p){
+  const W = 1080, H = 1920, PAD = 72, FONT = '"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Noto Sans CJK KR",sans-serif';
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const x = cv.getContext('2d');
+  const g = x.createLinearGradient(0,0,0,H); g.addColorStop(0,'#fdfbf3'); g.addColorStop(1,'#f1ecdc');
+  x.fillStyle = g; x.fillRect(0,0,W,H);
+  // 위쪽 시계·알림 자리 비우기(잠금화면) — 내용은 300px 아래부터
+  let y = 300;
+  x.fillStyle = '#8a7a45'; x.font = `700 34px ${FONT}`;
+  x.fillText(`나의 48시간 실험 · ${p.round}`, PAD, y); y += 50;
+  if(p.win){ x.font = `500 32px ${FONT}`; x.fillText(p.win, PAD, y); y += 30; }
+  y += 40;
+  x.fillStyle = '#1F3A2E';
+  let fs = 60; x.font = `800 ${fs}px ${FONT}`;
+  const st = wrapText(x, p.strat || '내 전략', W - PAD*2).slice(0, 2);
+  st.forEach(l=>{ x.fillText(l, PAD, y + fs*0.4); y += fs*1.2; });
+  y += 20;
+  // 본문: 넘치면 글씨를 줄여 다시 그림
+  const bottom = H - 230;
+  function body(size, dry){
+    let yy = y;
+    for(const [lab, vals] of p.rows){
+      yy += 18;
+      if(!dry){ x.strokeStyle = '#d8cfae'; x.setLineDash([10,8]); x.lineWidth = 2; x.beginPath(); x.moveTo(PAD, yy); x.lineTo(W-PAD, yy); x.stroke(); x.setLineDash([]); }
+      yy += size*1.2;
+      x.font = `700 ${Math.round(size*0.72)}px ${FONT}`; x.fillStyle = '#8a7a45';
+      if(!dry) x.fillText(lab, PAD, yy); yy += size*0.35;
+      x.font = `500 ${size}px ${FONT}`; x.fillStyle = vals.length ? '#1d2a24' : '#b8ad8a';
+      const txt = vals.length ? vals.join('\n') : '(아직 비어 있음)';
+      for(const l of wrapText(x, txt, W - PAD*2)){ yy += size*1.32; if(!dry) x.fillText(l, PAD, yy); }
+      yy += 8;
+    }
+    return yy;
+  }
+  let size = 40;
+  while(size > 24 && body(size, true) > bottom) size -= 2;
+  x.save(); x.beginPath(); x.rect(0, 0, W, bottom + 10); x.clip(); body(size, false); x.restore();
+  // 바닥 안내
+  x.fillStyle = '#1F3A2E'; x.fillRect(PAD, H-200, W-PAD*2, 120);
+  x.fillStyle = '#fff'; x.font = `600 30px ${FONT}`;
+  x.fillText('해 보기 전 예상 불편함 → 해 본 뒤 실제 불편함 (0~10)', PAD+30, H-150);
+  x.font = `500 28px ${FONT}`;
+  x.fillText('한 번 할 때마다 구글시트 「처방전 실행기록」에 한 줄', PAD+30, H-106);
+  x.fillStyle = '#9a8f6a'; x.font = `500 24px ${FONT}`;
+  x.fillText(`SEED · ${p.name || ''}`, PAD, H-40);
+  return cv;
+}
+function showPlan(cv, empty, round){
+  const url = cv.toDataURL('image/png');
+  const fname = `SEED_${round}_계획지_${new Date().toISOString().slice(0,10)}`;
+  const ov = h(`<div style="position:fixed;inset:0;background:rgba(20,28,24,.72);z-index:9999;overflow:auto;padding:18px 12px">
+    <div style="max-width:430px;margin:0 auto;background:#fff;border-radius:16px;padding:16px">
+      <div class="row"><b>나의 ${round} 계획지</b><span class="spacer"></span><button class="btn sm ghost" data-x>닫기 ✕</button></div>
+      ${empty.length ? `<div class="note warn" style="margin:10px 0">아직 비어 있는 칸: <b>${empty.map(esc).join(' · ')}</b><br>채워서 저장한 뒤 다시 만들면 계획지에도 들어갑니다.</div>` : ''}
+      <img src="${url}" alt="나의 계획지" style="width:100%;border-radius:12px;border:1px solid #ddd;margin:8px 0">
+      <div style="display:grid;gap:8px">
+        <button class="btn p wide" data-share>휴대폰에 저장 · 보내기</button>
+        <a class="btn wide" data-png href="${url}" download="${fname}.png">이미지(PNG)로 내려받기</a>
+        <button class="btn wide" data-pdf>PDF로 저장</button>
+      </div>
+      <p class="hint">아이폰에서 내려받기가 안 되면 위 그림을 <b>길게 눌러 ‘사진에 저장’</b>하세요.
+        저장한 그림을 <b>잠금화면 · 배경화면</b>으로 두면 48시간 동안 계속 보입니다.</p>
+    </div></div>`);
+  document.body.appendChild(ov);
+  $('[data-x]', ov).onclick = ()=> ov.remove();
+  ov.addEventListener('click', e=>{ if(e.target === ov) ov.remove(); });
+  const shareBtn = $('[data-share]', ov);
+  shareBtn.onclick = async ()=>{
+    try{
+      const blob = await new Promise(r=>cv.toBlob(r, 'image/png'));
+      const file = new File([blob], fname + '.png', { type:'image/png' });
+      if(navigator.canShare && navigator.canShare({ files:[file] })){
+        await navigator.share({ files:[file], title:'나의 계획지' });
+      }else{ $('[data-png]', ov).click(); }
+    }catch(e){ if(e && e.name !== 'AbortError') $('[data-png]', ov).click(); }
+  };
+  $('[data-pdf]', ov).onclick = async ()=>{
+    const b = $('[data-pdf]', ov); b.disabled = true; b.textContent = 'PDF 만드는 중…';
+    try{
+      if(!window.jspdf){
+        await new Promise((ok, no)=>{ const s = document.createElement('script');
+          s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
+      }
+      const pdf = new window.jspdf.jsPDF({ unit:'mm', format:[90, 160], orientation:'portrait' });
+      pdf.addImage(cv.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 90, 160);
+      pdf.save(fname + '.pdf');
+    }catch(e){ toast('PDF를 만들지 못했습니다. 이미지로 저장해 주세요.', 'bad'); }
+    b.disabled = false; b.textContent = 'PDF로 저장';
+  };
+}
