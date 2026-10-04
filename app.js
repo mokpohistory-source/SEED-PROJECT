@@ -511,6 +511,37 @@ function fieldCard(f, ctx){
       if(!a || !b) return '';
       return `중심: ${AREA_SHORT[a]} / 함께: ${AREA_SHORT[b]}`;
     };
+  } else if(f.field_id === 'S7_02'){
+    // 7차시 나의 선택 — KEEP · RETRY · CHANGE (2026-10-04 수정: 이전에는 5영역 목록이 잘못 떴음)
+    const KRC = [['KEEP','KEEP — 했고, 달라졌다'],
+                 ['RETRY','RETRY — 아직 제대로 못 해 봤다'],
+                 ['CHANGE','CHANGE — 했는데도 그대로다']];
+    const m0 = /\b(KEEP|RETRY|CHANGE)\b/i.exec(String(start));
+    const cur = m0 ? m0[1].toUpperCase() : '';
+    body.innerHTML = `<select id="i_${f.field_id}"><option value="">— 고르기 —</option>${KRC.map(([k,l])=>`<option value="${k}"${k===cur?' selected':''}>${esc(l)}</option>`).join('')}</select>
+      <p class="hint">① 계획대로 실행했나? 절반이 안 됐으면 <b>RETRY</b> &nbsp;·&nbsp; ② 했다면 Target에 도움이 됐나? 예 → <b>KEEP</b>, 아니오 → <b>CHANGE</b>. 하나만 고릅니다.</p>`;
+    read = ()=> $(`#i_${f.field_id}`, body).value;
+  } else if(f.field_id === 'S7_00' || f.field_id === 'S5_06'){
+    // 사용한 전략도구함 서식 — 구글시트 도구함의 탭 (2026-10-04 수정: 이전에는 5영역 목록이 잘못 떴음)
+    const TABS = ['48시간 실험','처방전 실행기록','내 처방전','내 전략 탭','전략 MySolution'];
+    const NONE = '안 썼음';
+    const parts = String(start).split(/\s*·\s*/).map(x=>x.trim()).filter(Boolean);
+    const on = new Set(parts.filter(x=>TABS.includes(x) || x===NONE));
+    const extra = parts.filter(x=>!TABS.includes(x) && x!==NONE).join(' · ');
+    body.innerHTML = `<div class="row" style="gap:8px 16px;flex-wrap:wrap">${[...TABS,NONE].map(t=>`<label style="display:inline-flex;align-items:center;gap:6px;font-size:15px;cursor:pointer"><input type="checkbox" data-t="${esc(t)}" style="width:18px;height:18px;accent-color:var(--green)" ${on.has(t)?'checked':''}> ${esc(t)}</label>`).join('')}</div>
+      <input type="text" id="x_${f.field_id}" style="margin-top:8px" value="${esc(extra)}" placeholder="내 전략 탭 이름 또는 그 밖의 서식 (예: 전략 백지점검)">
+      <p class="hint">구글시트 전략도구함에서 이번에 <b>실제로 쓴 탭</b>을 모두 고릅니다. 하나도 안 썼으면 <b>안 썼음</b>. 적게 썼어도 괜찮습니다 — 있는 그대로가 자료입니다.</p>`;
+    const boxes = [...body.querySelectorAll('input[type=checkbox]')];
+    boxes.forEach(b=>b.addEventListener('change', ()=>{
+      if(b.dataset.t === NONE && b.checked) boxes.forEach(x=>{ if(x !== b) x.checked = false; });
+      else if(b.checked) boxes.forEach(x=>{ if(x.dataset.t === NONE) x.checked = false; });
+    }));
+    read = ()=>{
+      const v = boxes.filter(b=>b.checked).map(b=>b.dataset.t);
+      const x = $(`#x_${f.field_id}`, body).value.trim();
+      if(x) v.push(x);
+      return v.join(' · ');
+    };
   } else if(/_RF_[ac]$/.test(f.field_id)){
     // 회기 마무리 성찰 — 오늘 쓴 칸 중에서 고른다. 목록은 그 차시 칸에서 만든다.
     const opts = (ctx.fields || []).filter(x => !/_RF_[a-d]$/.test(x.field_id));
