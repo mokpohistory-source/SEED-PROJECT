@@ -521,27 +521,37 @@ function fieldCard(f, ctx){
     body.innerHTML = `<select id="i_${f.field_id}"><option value="">— 고르기 —</option>${KRC.map(([k,l])=>`<option value="${k}"${k===cur?' selected':''}>${esc(l)}</option>`).join('')}</select>
       <p class="hint">① 계획대로 실행했나? 절반이 안 됐으면 <b>RETRY</b> &nbsp;·&nbsp; ② 했다면 Target에 도움이 됐나? 예 → <b>KEEP</b>, 아니오 → <b>CHANGE</b>. 하나만 고릅니다.</p>`;
     read = ()=> $(`#i_${f.field_id}`, body).value;
-  } else if(f.field_id === 'S7_00' || f.field_id === 'S5_06'){
-    // 사용한 전략도구함 서식 — 구글시트 도구함의 탭 (2026-10-04 수정: 이전에는 5영역 목록이 잘못 떴음)
-    const TABS = ['48시간 실험','처방전 실행기록','내 처방전','내 전략 탭','전략 MySolution'];
-    const NONE = '안 썼음';
-    const parts = String(start).split(/\s*·\s*/).map(x=>x.trim()).filter(Boolean);
-    const on = new Set(parts.filter(x=>TABS.includes(x) || x===NONE));
-    const extra = parts.filter(x=>!TABS.includes(x) && x!==NONE).join(' · ');
-    body.innerHTML = `<div class="row" style="gap:8px 16px;flex-wrap:wrap">${[...TABS,NONE].map(t=>`<label style="display:inline-flex;align-items:center;gap:6px;font-size:15px;cursor:pointer"><input type="checkbox" data-t="${esc(t)}" style="width:18px;height:18px;accent-color:var(--green)" ${on.has(t)?'checked':''}> ${esc(t)}</label>`).join('')}</div>
-      <input type="text" id="x_${f.field_id}" style="margin-top:8px" value="${esc(extra)}" placeholder="내 전략 탭 이름 또는 그 밖의 서식 (예: 전략 백지점검)">
-      <p class="hint">구글시트 전략도구함에서 이번에 <b>실제로 쓴 탭</b>을 모두 고릅니다. 하나도 안 썼으면 <b>안 썼음</b>. 적게 썼어도 괜찮습니다 — 있는 그대로가 자료입니다.</p>`;
-    const boxes = [...body.querySelectorAll('input[type=checkbox]')];
-    boxes.forEach(b=>b.addEventListener('change', ()=>{
-      if(b.dataset.t === NONE && b.checked) boxes.forEach(x=>{ if(x !== b) x.checked = false; });
-      else if(b.checked) boxes.forEach(x=>{ if(x.dataset.t === NONE) x.checked = false; });
-    }));
-    read = ()=>{
-      const v = boxes.filter(b=>b.checked).map(b=>b.dataset.t);
-      const x = $(`#x_${f.field_id}`, body).value.trim();
-      if(x) v.push(x);
-      return v.join(' · ');
-    };
+  } else if(f.field_id === 'S7_00'){
+    // 7차시 00 — 1차 48시간 실험에서 쓴 전략 (2026-10-04 수정)
+    // DB 칸 이름은 「사용한 전략도구함 서식」. 도구함 v3(9/29)부터 학생 주 전략 기준이므로 화면에서는 '쓴 전략'을 고르고, 없으면 직접 쓴다.
+    const lab = $('.lab', wrap); if(lab) lab.textContent = '1차 48시간 실험에서 쓴 전략';
+    // 목록 = 1차 48시간 설계 「실험할 전략」에 실제로 나온 12개(활동 중 16명 시트, 10/4 기준). 그 밖은 직접 쓰기
+    const LIST = ['S01 백지 복습','S09 자기점검표','S17 주간 계획표','S18 우선순위 정하기','S19 집중존 만들기',
+      'S20 복습 일정표','S21 도움 요청 대본','S23 계획 되살리기','S22 설명해 보기 짝','S30 원인 4분면','S34 나에게 친절한 말',
+      '시간 계획 쪼개기 (내 전략)'];
+    const etc = '__etc';
+    const inList = LIST.includes(String(start).trim());
+    body.innerHTML = `<div class="note" id="ref_${f.field_id}" style="margin:0 0 8px;display:none"></div>
+      <select id="i_${f.field_id}"><option value="">— 고르기 —</option>
+        ${LIST.map(n=>`<option value="${esc(n)}"${inList && n===String(start).trim()?' selected':''}>${esc(n)}</option>`).join('')}
+        <option value="${etc}"${start && !inList?' selected':''}>목록에 없음 — 직접 쓰기</option></select>
+      <input type="text" id="x_${f.field_id}" style="margin-top:8px;display:none" value="${esc(start && !inList ? start : '')}"
+        placeholder="실험한 전략을 직접 적어 주세요 (예: 내가 만든 전략 · 카드 번호)">
+      <p class="hint">구글시트 「48시간 실험」 탭 맨 위 <b>실험할 전략</b>과 같은 것을 고릅니다.
+        아래 계획 · 실제 · 차이 · 증거는 모두 <b>이 전략을 해 본 이야기</b>입니다.</p>`;
+    const selEl = $(`#i_${f.field_id}`, body), xEl = $(`#x_${f.field_id}`, body);
+    const syncEtc = ()=>{ xEl.style.display = selEl.value === etc ? '' : 'none'; };
+    selEl.addEventListener('change', syncEtc); syncEtc();
+    rpc('seed_session_fields', { p_token: Store.t, p_session: 5 }).then(d5=>{
+      const m = (d5.fields||[]).find(x=>x.field_id==='S5_04_a');
+      const main = m ? String(m.value != null ? m.value : (m.draft||'')).split(/\n/)[0].trim() : '';
+      if(main){ const r = $(`#ref_${f.field_id}`, body); r.innerHTML = `참고 · 5차시 내 처방전 주 전략 — <b>${esc(main)}</b>`; r.style.display = ''; }
+    }).catch(()=>{});
+    read = ()=>{ const v = selEl.value; if(!v) return ''; return v === etc ? xEl.value.trim() : v; };
+  } else if(f.field_id === 'S5_06'){
+    // 5차시 06 — 5영역 목록이 잘못 뜨던 칸. 저장된 글자를 그대로 보여 주는 글 칸으로 둔다(2026-10-04)
+    body.innerHTML = `<input type="text" id="i_${f.field_id}" value="${esc(start)}" placeholder="고른 서식이나 전략 이름">`;
+    read = ()=> $(`#i_${f.field_id}`, body).value;
   } else if(/_RF_[ac]$/.test(f.field_id)){
     // 회기 마무리 성찰 — 오늘 쓴 칸 중에서 고른다. 목록은 그 차시 칸에서 만든다.
     const opts = (ctx.fields || []).filter(x => !/_RF_[a-d]$/.test(x.field_id));
