@@ -1484,7 +1484,7 @@ async function staffRead(sub){
           <button class="btn sm ${layout==='person'?'p':''}" data-lay="person">사람별로 묶기</button>
           <button class="btn sm ${layout==='question'?'p':''}" data-lay="question">문항별로 묶기</button></span>` : ''}
       <span class="spacer"></span>
-      ${mode==='session' && (sesNo===6 || sesNo===7) ? `<button class="btn sm p" id="rplan">📱 계획지 모아 PDF (A4에 2명)</button>` : ''}
+      ${mode==='session' && (sesNo===6 || sesNo===7) ? `<button class="btn sm p" id="rplan">📱 계획지 모아 PDF (A4에 2명 · 전원)</button>` : ''}
       <button class="btn sm" id="rcsv">CSV 내려받기 (엑셀)</button>
       <button class="btn sm p" id="rprint">인쇄 · PDF로 저장</button></div>
     <div class="note warn no-print">연구 자료입니다. 화면을 띄워 둔 채 자리를 비우지 마시고, 인쇄물·파일은 잠금 폴더에 보관하세요.
@@ -1805,7 +1805,7 @@ async function makePlan(no, fields, sess){
   const PRE = { S6_02_a:'① ', S6_02_b:'② ', S6_03_a:'장애물 · ', S6_03_b:'대응 · ' };
   const rows = spec.rows.map(([lab, ids])=>[lab, ids.map(i=>{ const v = planVal(i, fields); return v ? (ids.length > 1 ? (PRE[i]||'') : '') + v : ''; }).filter(Boolean)]);
   const empty = rows.filter(r=>!r[1].length).map(r=>r[0]);
-  const canvas = drawPlan({ round: spec.round, win: planWindow(sess), name: (ME && ME.name) || '', strat, rows });
+  const canvas = drawPlanPrint({ round: spec.round, win: planWindow(sess), name: (ME && ME.name) || '', strat, rows });  // 2026-10-07b: 인쇄용 디자인으로 통일
   showPlan(canvas, empty, spec.round);
 }
 function wrapText(ctx, text, maxW){
@@ -1906,6 +1906,108 @@ async function loadJsPDF(){
   await new Promise((ok, no)=>{ const s = document.createElement('script');
     s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
 }
+// ── 인쇄용 계획지 (2026-10-07 추가) ─────────────────────────────
+// 학생 휴대폰용(drawPlan, 1080×1920 잠금화면)과 별개로, 진행자 「계획지 모아 PDF」 전용.
+// A4 한 장에 위·아래 두 명(A5 가로 크기), 가운데 자르는 선.
+function drawPlanPrint(p){
+  const S = 2, W = 1240, H = 874;              // 논리 크기(×2로 그림 → 약 300dpi)
+  const FONT = '"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR","Noto Sans CJK KR",sans-serif';
+  const C = { ink:'#1d2a24', forest:'#1F3A2E', moss:'#4F7A4A', gold:'#8a7a45', line:'#ddd5bd',
+              paper:'#fffdf7', pale:'#f6f2e6', sub:'#6b6a5e', faint:'#b8ad8a' };
+  const cv = document.createElement('canvas'); cv.width = W*S; cv.height = H*S;
+  const x = cv.getContext('2d'); x.scale(S, S); x.textBaseline = 'alphabetic';
+  const rr = (X,Y,w,hh,r)=>{ x.beginPath(); x.moveTo(X+r,Y); x.arcTo(X+w,Y,X+w,Y+hh,r); x.arcTo(X+w,Y+hh,X,Y+hh,r); x.arcTo(X,Y+hh,X,Y,r); x.arcTo(X,Y,X+w,Y,r); x.closePath(); };
+  const wrap = (t, mw)=> wrapText(x, t, mw);
+
+  // 바탕
+  x.fillStyle = '#ffffff'; x.fillRect(0,0,W,H);
+  rr(4,4,W-8,H-8,22); x.fillStyle = C.paper; x.fill(); x.lineWidth = 2; x.strokeStyle = C.line; x.stroke();
+
+  // ── 왼쪽 띠: 회차 · 이름 · 내 전략
+  const LW = 330;
+  x.save(); rr(4,4,W-8,H-8,22); x.clip();
+  x.fillStyle = C.forest; x.fillRect(4,4,LW,H-8);
+  x.restore();
+  let ly = 66; const LX = 40, LMW = LW - 64;
+  x.fillStyle = '#c9d8b8'; x.font = `700 17px ${FONT}`; x.fillText('SEED · 나의 48시간 실험', LX, ly); ly += 62;
+  x.fillStyle = '#ffffff'; x.font = `800 54px ${FONT}`; x.fillText(`${p.round} 계획`, LX, ly); ly += 40;
+  if(p.win){ x.fillStyle = '#c9d8b8'; x.font = `500 17px ${FONT}`; wrap(p.win, LMW).forEach(l=>{ x.fillText(l, LX, ly); ly += 24; }); }
+  ly += 26;
+  x.strokeStyle = 'rgba(255,255,255,.25)'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(LX, ly); x.lineTo(LW-24, ly); x.stroke(); ly += 46;
+  x.fillStyle = '#ffffff'; let nf = 40; x.font = `800 ${nf}px ${FONT}`;
+  while(nf > 24 && x.measureText(p.name||'').width > LMW){ nf -= 2; x.font = `800 ${nf}px ${FONT}`; }
+  x.fillText(p.name || '', LX, ly); ly += 26;
+  if(p.no){ x.fillStyle = '#9fb592'; x.font = `500 16px ${FONT}`; x.fillText(p.no, LX, ly); }
+  ly += 54;
+  // 내 전략 상자 — 「전략 · KEEP/RETRY/CHANGE」는 줄을 나눠 단어가 잘리지 않게
+  const parts = String(p.strat || '—').split(/\s*·\s*/).filter(Boolean);
+  let sf = 28, sl;
+  do { x.font = `700 ${sf}px ${FONT}`; sl = [].concat(...parts.map(t=>wrap(t, LMW-24))); if(sl.length*sf*1.36 <= H-4-40-ly-110) break; sf -= 2; } while(sf > 15);
+  const sh = 52 + sl.length*sf*1.36 + 14, sy = ly;
+  rr(LX-12, sy, LW-56, sh, 14); x.fillStyle = 'rgba(255,255,255,.08)'; x.fill();
+  x.fillStyle = '#c9d8b8'; x.font = `700 15px ${FONT}`; x.fillText('내 전략', LX+4, sy+34);
+  x.fillStyle = '#ffffff'; x.font = `700 ${sf}px ${FONT}`; let yy = sy + 52 + sf*0.95;
+  sl.forEach(l=>{ x.fillText(l, LX+4, yy); yy += sf*1.36; });
+  // 띠 아래 안내
+  x.fillStyle = '#9fb592'; x.font = `500 14.5px ${FONT}`;
+  ['48시간은 꼭 · 그 뒤 다음 수업까지는', '해 봤으면 기록만'].forEach((t,i)=> x.fillText(t, LX, H - 4 - 58 + i*22));
+
+  // ── 오른쪽: 칸 상자
+  const RX = LW + 34, RW = W - 4 - RX - 34, top = 40, foot = 104, bottom = H - 4 - foot - 12;
+  if(p.blank){
+    x.fillStyle = '#b4532a'; x.font = `700 15px ${FONT}`;
+    x.textAlign = 'right'; x.fillText('앱에 아직 저장하지 않음 · 손으로 적어 주세요', RX+RW, top+2); x.textAlign = 'left';
+  }
+  const n = p.rows.length, GAP = n > 5 ? 10 : 14, PADX = 22, LABH = n > 5 ? 32 : 40;
+  const avail = bottom - (top + 16) - GAP*(n-1);
+  const need = s => p.rows.map(([,v])=>{
+    if(!v.length) return LABH + 24;
+    x.font = `500 ${s}px ${FONT}`;
+    const lines = wrap(v.join('\n'), RW - PADX*2).length;
+    return LABH + lines*s*1.42 + (n > 5 ? 10 : 18);
+  });
+  let fs = 24, hs = need(fs);
+  while(fs > 12 && hs.reduce((a,b)=>a+b,0) > avail){ fs -= 1; hs = need(fs); }
+  const tot = hs.reduce((a,b)=>a+b,0);
+  // 남는 공간은 고르게 나눔 (빈 계획지는 같은 높이)
+  const extra = Math.max(0, avail - tot);
+  hs = p.blank ? hs.map(()=>avail/n) : hs.map(hh=>hh + extra/n);
+  let by = top + 16;
+  p.rows.forEach(([lab, vals], i)=>{
+    const bh = Math.min(hs[i], bottom - by);
+    rr(RX, by, RW, bh, 14); x.fillStyle = '#ffffff'; x.fill(); x.strokeStyle = C.line; x.lineWidth = 1.5; x.stroke();
+    x.fillStyle = C.moss; rr(RX, by, 6, bh, 3); x.fill();
+    x.fillStyle = C.gold; x.font = `700 ${n > 5 ? 14.5 : 16}px ${FONT}`; x.fillText(lab, RX+PADX, by+(n > 5 ? 23 : 28));
+    x.save(); rr(RX, by, RW, bh, 14); x.clip();
+    if(vals.length){
+      x.fillStyle = C.ink; x.font = `500 ${fs}px ${FONT}`;
+      let ty = by + LABH + fs*0.95;
+      wrap(vals.join('\n'), RW - PADX*2).forEach(l=>{ x.fillText(l, RX+PADX, ty); ty += fs*1.42; });
+    }else{
+      x.strokeStyle = '#e6dfca'; x.lineWidth = 1.2; x.setLineDash([5,6]);
+      for(let ly2 = by + LABH + 30; ly2 < by + bh - 10; ly2 += 34){ x.beginPath(); x.moveTo(RX+PADX, ly2); x.lineTo(RX+RW-PADX, ly2); x.stroke(); }
+      x.setLineDash([]);
+    }
+    x.restore();
+    by += bh + GAP;
+  });
+
+  // ── 바닥: 실행 체크
+  const fy = H - 4 - foot - 4, fx = RX;
+  rr(fx, fy, RW, foot - 26, 14); x.fillStyle = C.pale; x.fill();
+  const cells = [['해 봤나', '○   △   ×'], ['예상 불편함', '___ / 10'], ['실제 불편함', '___ / 10'], ['실행한 날', '___ / ___']];
+  const cw = RW / cells.length;
+  cells.forEach(([a,b], i)=>{
+    const cx = fx + cw*i + 20;
+    if(i){ x.strokeStyle = C.line; x.lineWidth = 1.2; x.beginPath(); x.moveTo(fx+cw*i, fy+14); x.lineTo(fx+cw*i, fy+foot-40); x.stroke(); }
+    x.fillStyle = C.gold; x.font = `700 14px ${FONT}`; x.fillText(a, cx, fy+28);
+    x.fillStyle = C.ink;  x.font = `600 20px ${FONT}`; x.fillText(b, cx, fy+60);
+  });
+  x.fillStyle = C.sub; x.font = `500 13.5px ${FONT}`;
+  x.fillText('한 번 할 때마다 구글시트 「처방전 실행기록」에 한 줄 · 증거는 사진으로 남겨 두세요', RX, H - 4 - 16);
+  return cv;
+}
+
 async function staffPlanPDF(no, btn){
   const spec = PLAN_SPEC[no]; if(!spec) return;
   const old = btn.textContent; btn.disabled = true; btn.textContent = '계획지 만드는 중…';
@@ -1916,29 +2018,35 @@ async function staffPlanPDF(no, btn){
     const sess = ((OV && OV.sessions)||[]).find(s=>s.session_no==no) || (d.sessions||[]).find(s=>s.session_no==no) || {};
     const win = planWindow(sess);
     const PRE = { S6_02_a:'① ', S6_02_b:'② ', S6_03_a:'장애물 · ', S6_03_b:'대응 · ' };
-    const pages = [], none = [];
+    const filled = [], blank = [];
     (d.people||[]).forEach(p=>{
+      if(p.status === 'withdrawn') return;                       // 철회자는 넣지 않음
       const A = p.answers || {};
       const val = id => A[id] ? String(A[id].value||'').trim() : '';
       const rows = spec.rows.map(([lab, ids])=>[lab, ids.map(i=>{ const v = val(i); return v ? (ids.length>1 ? (PRE[i]||'') : '') + v : ''; }).filter(Boolean)]);
-      if(!rows.some(r=>r[1].length)){ none.push(p.name || p.student_no); return; }
       let strat = (s5[p.student_no]||'').split(/\n/)[0].replace(/[,，]\s*$/,'').trim();
       if(no === 7 && val('S7_02')) strat = (strat ? strat + '  ·  ' : '') + val('S7_02');
-      pages.push(drawPlan({ round: spec.round, win, name: p.name || '', strat, rows }));
+      const isBlank = !rows.some(r=>r[1].length);
+      const card = { round: spec.round, win, name: p.name || '', no: p.student_no || '', strat, rows, blank: isBlank };
+      (isBlank ? blank : filled).push(card);
     });
-    if(!pages.length){ toast(`${no}차시 계획을 저장한 학생이 아직 없습니다.`, 'bad'); return; }
+    const byName = (a,b)=> String(a.name).localeCompare(String(b.name), 'ko');
+    filled.sort(byName); blank.sort(byName);
+    const all = filled.concat(blank);                              // 쓴 학생 먼저, 아직 안 쓴 학생은 빈 계획지로 뒤에
+    if(!all.length){ toast('명단에 학생이 없습니다.', 'bad'); return; }
     await loadJsPDF();
     const pdf = new window.jspdf.jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
-    // A4(210×297)에 90×160 두 장 — 가운데 자르는 선
-    pages.forEach((cv, i)=>{
+    // A4(210×297) 위·아래 두 장 — 가운데(148.5mm) 자르는 선
+    const CW = 194, CH = CW * 874 / 1240;
+    all.forEach((card, i)=>{
       const k = i % 2;
       if(i > 0 && k === 0) pdf.addPage();
-      const x = k === 0 ? 8 : 107, y = 22;
-      pdf.addImage(cv.toDataURL('image/jpeg', 0.9), 'JPEG', x, y, 95, 169);
-      if(k === 0){ pdf.setDrawColor(180); pdf.setLineDashPattern([2,2], 0); pdf.line(105, 10, 105, 287); }
+      const cv = drawPlanPrint(card);
+      pdf.addImage(cv.toDataURL('image/jpeg', 0.92), 'JPEG', 8, k === 0 ? 7 : 148.5 + 4.5, CW, CH);
+      if(k === 0){ pdf.setDrawColor(170); pdf.setLineDashPattern([2,2], 0); pdf.line(4, 148.5, 206, 148.5); pdf.setLineDashPattern([], 0); }
     });
-    pdf.save(`SEED_${no}차시_계획지_전체_${pages.length}명.pdf`);
-    toast(`${pages.length}명 계획지를 PDF로 만들었습니다.` + (none.length ? ` 아직 안 쓴 학생 ${none.length}명: ${none.join(', ')}` : ''), 'ok');
+    pdf.save(`SEED_${no}차시_계획지_인쇄용_${filled.length}명작성_${blank.length}명빈칸.pdf`);
+    toast(`계획지 ${all.length}장을 PDF로 만들었습니다 (작성 ${filled.length} · 빈 계획지 ${blank.length}).` + (blank.length ? ` 아직 안 쓴 학생: ${blank.map(c=>c.name||c.no).join(', ')}` : ''), 'ok');
   }catch(e){ toast('계획지를 만들지 못했습니다: ' + (e.message||e), 'bad'); }
   finally{ btn.disabled = false; btn.textContent = old; }
 }
