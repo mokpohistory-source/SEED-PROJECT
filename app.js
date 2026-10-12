@@ -6,32 +6,24 @@
 
 // 2026-10-12 — 9차시 전이 시나리오 칸 아래 도움말 [안내문, 입력칸 예시]. 화면 안내만 바꾸며 field_id · 저장값은 그대로.
 const FIELD_HINT = {
-  'S9_04_a': ['<b>상황</b> — 개인 상황카드에서 고른 상황(A 또는 B)을 한 줄로 옮겨 씁니다. 카드가 없으면 “같은 실수가 다시 올 것 같은 장면”을 직접 씁니다.',
-              '예) 중간고사 사흘 전, 제일 싫은 과목 차례'],
-  'S9_04_b': ['<b>S · 알아차리기</b> — 어느 순간에 “또 그러네”를 알아챌까요? 무슨 일이 있었고, 어느 장면에서 어긋났나요?',
-              '예) 책상에 앉자마자 “하기 싫다”가 먼저 떠오르는 순간'],
-  'S9_04_c': ['<b>E · 이유 찾기</b> — 왜 그랬을까요? 그때 나는 어떻게 반응했나요?',
-              '예) 양이 많아 보여서 시작 전에 지쳤다'],
-  'S9_04_d': ['<b>E · 작게 해 보기</b> — 48시간 안에 해 볼 작은 행동 하나. 전략 이름보다 <b>무엇을</b> 할지 적습니다. 오늘 쓴 <b>실수관리 원칙 카드 ①·②·③ 중 하나</b>를 골라, 그 원칙대로 할 행동을 씁니다.',
-              '예) 원칙 카드 ② — 끝나면 그 자리에서 5분만 연다'],
-  'S9_04_e': ['<b>D · 보고 고치기</b> — 무엇을 보고 계속할지 · 고칠지 정할까요? (관찰 · 점검 · 수정)',
-              '예) 바로 시작한 날에 ○, 일주일에 ○가 2개 이하이면 크기를 줄인다'],
-  // 30일 계획 — 오늘은 ① 하나만 정확하게(10/12 연구자 결정). ② · 90일은 「없음」 — 설계상 축소
-  'S9_05_a1_trigger': ['<b>언제 · 신호</b> — 날마다 언제 · 어디서 할까요? 또는 내 실수가 시작되는 신호(전이 시나리오 <b>S</b> 줄). 30일 동안 <b>날마다</b> 할 수 있는 것으로.',
-                       '예) 수업이 끝나고 “나중에 하지” 생각이 들 때'],
-  'S9_05_a1_action':  ['<b>할 행동</b> — 전이 시나리오 <b>E(작게 해 보기)</b> 줄. 다짐이 아니라 눈에 보이는 행동 하나, 1·2차에서 실제로 해낸 크기로.',
-                       '예) 그 자리에서 5분 동안 과제 첫 줄 쓰기'],
-  'S9_05_a1_cycle':   ['<b>점검 주기</b> — 언제 돌아볼까요? (예: 매주 일요일 밤)', '예) 매주 일요일 밤 10분'],
-  'S9_05_a1_evidence':['<b>남길 증거</b> — 했는지 남이 봐도 알 수 있는 흔적.', '예) 30일 계획표에 날마다 한 일 · ○△× · 한 줄 성찰'],
-  'S9_05_a1_resource':['<b>도움자원</b> — 막히면 누구 · 어디에 물을까요? 비우지 않습니다.', '예) 짝 ○○ · 학습지원센터 · 원칙 카드'],
-  'S9_05_a2_trigger': ['오늘은 <b>계획 ① 하나만</b> 씁니다. 이 칸에는 <b>없음</b>이라고 적고 저장하세요.', '없음'],
-  'S9_05_a2_action':  ['오늘은 계획 ① 하나만 씁니다. <b>없음</b>이라고 적고 저장하세요.', '없음'],
-  'S9_05_a2_cycle':   ['오늘은 계획 ① 하나만 씁니다. <b>없음</b>이라고 적고 저장하세요.', '없음'],
-  'S9_05_a2_evidence':['오늘은 계획 ① 하나만 씁니다. <b>없음</b>이라고 적고 저장하세요.', '없음'],
-  'S9_05_a2_resource':['오늘은 계획 ① 하나만 씁니다. <b>없음</b>이라고 적고 저장하세요.', '없음'],
-  'S9_05_r':          ['<b>재도전 규칙</b> — 8차시에 쓴 규칙(발견 → 점검 → 수정)을 그대로 옮기거나, 바뀌었으면 고쳐 씁니다. 여정판 「재도전 규칙」 칸에 있습니다.',
-                       '예) ×가 이틀 이어지면 → 이유를 보고 → 크기를 반으로 줄여 다시'],
-  'S9_05_b':          ['90일 방향은 오늘 쓰지 않습니다. <b>없음</b>이라고 적고 저장하세요.', '없음'],
+  'S9_04_a': ['<b>상황</b> — 개인 상황카드에서 고른 상황(A 또는 B)을 한 줄로 옮겨 씁니다. 카드가 없으면 “같은 실수가 다시 올 것 같은 장면”을 직접 씁니다.', ''],
+  'S9_04_b': ['<b>S · 알아차리기</b> — 어느 순간에 “또 그러네”를 알아챌까요? 무슨 일이 있었고, 어느 장면에서 어긋났나요?', ''],
+  'S9_04_c': ['<b>E · 이유 찾기</b> — 왜 그랬을까요? 그때 나는 어떻게 반응했나요?', ''],
+  'S9_04_d': ['<b>E · 작게 해 보기</b> — 48시간 안에 해 볼 작은 행동 하나. 전략 이름보다 <b>무엇을</b> 할지 적습니다. 오늘 쓴 <b>실수관리 원칙 카드 ①·②·③ 중 하나</b>를 골라, 그 원칙대로 할 행동을 씁니다.', ''],
+  'S9_04_e': ['<b>D · 보고 고치기</b> — 무엇을 보고 계속할지 · 고칠지 정할까요? (관찰 · 점검 · 수정)', ''],
+  // 30일 계획 — 하나만 정확하게(10/12 연구자 결정: 설계 정정). ②는 숨김, 90일은 30일의 확장
+  'S9_05_a1_trigger': ['<b>언제 · 신호</b> — 날마다 언제 · 어디서 할까요? 또는 내 실수가 시작되는 신호(전이 시나리오 <b>S</b> 줄). 30일 동안 <b>날마다</b> 할 수 있는 것으로.', ''],
+  'S9_05_a1_action':  ['<b>할 행동</b> — 전이 시나리오 <b>E(작게 해 보기)</b> 줄. 다짐이 아니라 눈에 보이는 행동 하나, 1·2차에서 실제로 해낸 크기로.', ''],
+  'S9_05_a1_cycle':   ['<b>점검 주기</b> — 언제 돌아볼까요? ', ''],
+  'S9_05_a1_evidence':['<b>남길 증거</b> — 했는지 남이 봐도 알 수 있는 흔적.', ''],
+  'S9_05_a1_resource':['<b>도움자원</b> — 막히면 누구 · 어디에 물을까요? 비우지 않습니다.', ''],
+  'S9_05_a2_trigger': ['오늘은 <b>계획 ① 하나만</b> 씁니다. 이 칸에는 <b>없음</b>이라고 적고 저장하세요.', ''],
+  'S9_05_a2_action':  ['오늘은 계획 ① 하나만 씁니다. <b>없음</b>이라고 적고 저장하세요.', ''],
+  'S9_05_a2_cycle':   ['오늘은 계획 ① 하나만 씁니다. <b>없음</b>이라고 적고 저장하세요.', ''],
+  'S9_05_a2_evidence':['오늘은 계획 ① 하나만 씁니다. <b>없음</b>이라고 적고 저장하세요.', ''],
+  'S9_05_a2_resource':['오늘은 계획 ① 하나만 씁니다. <b>없음</b>이라고 적고 저장하세요.', ''],
+  'S9_05_r':          ['<b>재도전 규칙</b> — 8차시에 쓴 규칙(발견 → 점검 → 수정)을 그대로 옮기거나, 바뀌었으면 고쳐 씁니다. 여정판 「재도전 규칙」 칸에 있습니다.', ''],
+  'S9_05_b':          ['<b>90일 방향</b> — 30일 계획을 넓히면 어디까지 갈까요? 한 줄이면 됩니다. 떠오르지 않으면 <b>없음</b>.', ''],
 };
 
 const CFG = {
@@ -692,9 +684,32 @@ function fieldCard(f, ctx){
     const big = /_RJ_/.test(f.field_id) || /사건|문장|왜|이유|알게/.test(f.label);
     const h = FIELD_HINT[f.field_id];   // 2026-10-12 9차시 전이 시나리오 도움말(화면 안내만 · DB 변경 없음)
     body.innerHTML = `<textarea id="i_${f.field_id}" rows="${big?4:3}"
-      placeholder="${h ? esc(h[1]) : '짧아도 괜찮습니다. 떠오르는 대로.'}">${esc(start)}</textarea>`
-      + (h ? `<p class="hint">${h[0]}</p>` : '');
+      placeholder="${/^S9_(?!MC$)/.test(f.field_id) ? '종이에 쓴 문장을 그대로 옮겨 적어 주세요.' : ''}">${esc(start)}</textarea>`
+      + (h ? `<p class="hint">${h[0]}</p>` : '')
+      + (/^S9_02_[abc]$/.test(f.field_id) ? `<button type="button" class="btn sm ghost" data-star style="margin-top:6px">☆ 가장 큰 변화로 고르기</button>` : '');
     read = ()=> $(`#i_${f.field_id}`, body).value;
+    // 2026-10-12 변화증거 ★: 세 칸 중 하나만. 글 맨 앞에 「★ 」를 붙여 같은 칸에 저장(DB 칸 추가 없음)
+    const sb = $('[data-star]', body);
+    if(sb){
+      const STAR = /^\s*★\s*/;
+      const ta = $(`#i_${f.field_id}`, body);
+      const paint = ()=>{ const on = STAR.test(ta.value); sb.textContent = on ? '★ 가장 큰 변화 (다시 누르면 취소)' : '☆ 가장 큰 변화로 고르기'; sb.classList.toggle('p', on); };
+      const saveOf = el=>{ let w = el; while(w && !(w.querySelector && w.querySelector('.save'))) w = w.parentElement; return w && w.querySelector('.save'); };
+      ta.addEventListener('input', paint); setTimeout(paint, 0);
+      sb.onclick = ()=>{
+        const on = STAR.test(ta.value);
+        if(!on && !ta.value.trim()) return toast('먼저 변화증거를 적어 주세요.', 'bad');
+        if(!on){
+          ['a','b','c'].map(k=>'S9_02_'+k).filter(id=>id!==f.field_id).forEach(id=>{
+            const o = document.getElementById('i_'+id);
+            if(o && STAR.test(o.value)){ o.value = o.value.replace(STAR, ''); o.dispatchEvent(new Event('input')); const b = saveOf(o); if(b && o.value.trim()) b.click(); }
+          });
+          ta.value = '★ ' + ta.value.replace(STAR, '');
+        }else ta.value = ta.value.replace(STAR, '');
+        ta.dispatchEvent(new Event('input'));
+        const b = saveOf(ta); if(b) b.click();
+      };
+    }
   }
 
   // 입력 감지 → 임시 보관 대기줄
@@ -1808,6 +1823,7 @@ function planWindow(sess){
   return `${f(d)} 20:00 ~ ${f(e)} 20:00`;
 }
 function planCard(no, fields, sess){
+  if(no === 9) return modelCard(fields);
   const spec = PLAN_SPEC[no]; if(!spec) return null;
   const c = h(`<div class="card" style="margin-top:22px;border:2px solid var(--green)">
     <h3 style="margin:0 0 6px">📱 나의 ${spec.round} 계획지</h3>
@@ -2081,4 +2097,140 @@ async function staffPlanPDF(no, btn){
     toast(`계획지 ${all.length}장을 PDF로 만들었습니다 (작성 ${filled.length} · 빈 계획지 ${blank.length}).` + (blank.length ? ` 아직 안 쓴 학생: ${blank.map(c=>c.name||c.no).join(', ')}` : ''), 'ok');
   }catch(e){ toast('계획지를 만들지 못했습니다: ' + (e.message||e), 'bad'); }
   finally{ btn.disabled = false; btn.textContent = old; }
+}
+
+
+/* =====================================================================
+   9차시 — 나의 SEED 모형 (2026-10-12 추가)
+   오늘 저장한 문장(전이 시나리오 · 원칙 · 30일 계획)을 그대로 한 장의 그림으로.
+   고치거나 판정하지 않는다(수칙 1). 휴대폰 이미지(PNG)로 저장.
+   ===================================================================== */
+const PAIR_Q = [
+  ['장면', '‘이럴 때’를 읽으면 그 장면이 바로 떠올라?'],
+  ['작게', '‘작게 해 보기’, 내일 당장 할 수 있을 만큼 작아? 언제 · 어디서 해?'],
+  ['막히면', '안 된 날 어떻게 할지 적혀 있어?'],
+];
+function modelCard(fields){
+  const c = h(`<div class="card" style="margin-top:22px;border:2px solid var(--green)">
+    <h3 style="margin:0 0 6px">🌱 나의 SEED 모형 — 내 실수 사용설명서</h3>
+    <p class="muted" style="margin:0 0 10px">원칙 · 전이 시나리오 · 30일 계획을 <b>저장한 뒤</b> 누르세요. 오늘 쓴 문장을 그대로 한 장에 모읍니다.</p>
+    <div style="display:grid;gap:10px">
+      <div><b>① 초안 그림</b> — 먼저 만들어 휴대폰에 저장하세요.
+        <button class="btn wide" id="modeldraft" style="margin-top:6px">초안 그림 만들기</button></div>
+      <div class="note" style="margin:0"><b>② 짝과 확인하기</b> — 내 그림을 짝에게 보여 주고, 짝은 아래 세 가지를 <b>묻기만</b> 합니다.
+        답이 막히는 곳만 내가 고칩니다.
+        <ol style="margin:6px 0 0 18px;padding:0">${PAIR_Q.map(q=>`<li><b>${q[0]}</b> — ${q[1]}</li>`).join('')}</ol>
+        <p class="hint" style="margin:6px 0 0">고칠 곳이 있으면 위 칸에서 고치고 <b>저장</b>하세요. 고칠 곳이 없어도 괜찮습니다.</p></div>
+      <div><b>③ 최종 그림</b> — 짝 확인이 끝나면 다시 만들어 저장하세요.
+        <button class="btn p wide" id="modelfinal" style="margin-top:6px">최종 그림 만들기</button></div>
+    </div></div>`);
+  const go = stage => ()=>{ try{ makeModel(fields, stage); }catch(e){ toast('모형을 만들지 못했습니다: ' + (e.message||e), 'bad'); } };
+  $('#modeldraft', c).onclick = go('draft');
+  $('#modelfinal', c).onclick = go('final');
+  return c;
+}
+function makeModel(fields, stage){
+  const v = id => planVal(id, fields);
+  const p = {
+    name: (ME && ME.name) || '', stage: stage || 'draft',
+    scene: v('S9_04_a'),
+    star: (['a','b','c'].map(k=>v('S9_02_'+k)).find(t=>/^\s*★/.test(t||'')) || '').replace(/^\s*★\s*/, ''),
+    steps: [['S','알아차리기',v('S9_04_b'),'#2f6fbf'],['E','이유 찾기',v('S9_04_c'),'#6d4fb3'],
+            ['E','작게 해 보기',v('S9_04_d'),'#c96a1b'],['D','보고 고치기',v('S9_04_e'),'#2E6A3A']],
+    rules: [['①',v('S9_03_a')],['②',v('S9_03_b')],['③',v('S9_03_c')],['+',v('S9_03_d')]].filter(r=>r[1] && r[1] !== '없음'),
+    when: v('S9_05_a1_trigger'), act: v('S9_05_a1_action'), retry: v('S9_05_r'),
+  };
+  const empty = [];
+  if(!p.steps.every(s=>s[2])) empty.push('전이 시나리오');
+  if(!p.rules.length) empty.push('원칙');
+  if(!p.when && !p.act) empty.push('30일 계획');
+  showModel(drawModel(p), empty, p.stage);
+}
+function drawModel(p){
+  const W = 1080, H = 1920, PAD = 64, FONT = '"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Noto Sans CJK KR",sans-serif';
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const x = cv.getContext('2d');
+  x.fillStyle = '#fbfaf5'; x.fillRect(0,0,W,H);
+  const fit = (text, maxW, maxLines, big, small, weight)=>{
+    for(let s = big; s >= small; s -= 2){
+      x.font = `${weight||500} ${s}px ${FONT}`;
+      const ls = wrapText(x, text, maxW);
+      if(ls.length <= maxLines) return { s, ls };
+    }
+    x.font = `${weight||500} ${small}px ${FONT}`;
+    const ls = wrapText(x, text, maxW).slice(0, maxLines); return { s: small, ls };
+  };
+  const draw = (r, X, Y, color, lh)=>{ x.fillStyle = color; r.ls.forEach((l,i)=>x.fillText(l, X, Y + i*r.s*(lh||1.3))); };
+  let y = 250;
+  { const fin = p.stage === 'final';
+    const t = fin ? '최종 · 짝과 확인함' : '초안 · 짝 확인 전';
+    x.font = `800 28px ${FONT}`; const tw = x.measureText(t).width + 44;
+    x.fillStyle = fin ? '#2E6A3A' : '#e7e2d3';
+    x.beginPath(); x.roundRect ? x.roundRect(W-PAD-tw, 120, tw, 56, 28) : x.rect(W-PAD-tw, 120, tw, 56); x.fill();
+    x.fillStyle = fin ? '#fff' : '#6b6450'; x.fillText(t, W-PAD-tw+22, 158); }
+  x.fillStyle = '#2E6A3A'; x.font = `800 30px ${FONT}`; x.fillText('SEED · 나만의 SEED 모형', PAD, y); y += 70;
+  x.fillStyle = '#1F3A2E'; x.font = `900 62px ${FONT}`; x.fillText('내 실수 사용설명서', PAD, y); y += 40;
+  if(p.scene){ const r = fit('이럴 때 — ' + p.scene, W-PAD*2, 2, 34, 26, 600); draw(r, PAD, y + r.s, '#555'); y += r.ls.length*r.s*1.3 + 20; }
+  if(p.star){ const r = fit('★ 내 가장 큰 변화 — ' + p.star, W-PAD*2, 2, 30, 24, 700); draw(r, PAD, y + r.s, '#b5832a'); y += r.ls.length*r.s*1.3 + 10; }
+  // S · E · E · D 네 칸 (2 × 2, 시계 방향 화살표)
+  const bw = (W - PAD*2 - 40)/2, bh = 300, gx = PAD, gy = y + 20;
+  const pos = [[gx, gy],[gx+bw+40, gy],[gx+bw+40, gy+bh+40],[gx, gy+bh+40]];
+  p.steps.forEach(([k, lab, txt, col], i)=>{
+    const [bx, by] = pos[i];
+    x.fillStyle = '#fff'; x.strokeStyle = col; x.lineWidth = 6;
+    x.beginPath(); x.roundRect ? x.roundRect(bx, by, bw, bh, 26) : x.rect(bx, by, bw, bh); x.fill(); x.stroke();
+    x.fillStyle = col; x.beginPath(); x.arc(bx+48, by+52, 30, 0, Math.PI*2); x.fill();
+    x.fillStyle = '#fff'; x.font = `900 34px ${FONT}`; x.textAlign = 'center'; x.fillText(k, bx+48, by+64); x.textAlign = 'left';
+    x.fillStyle = col; x.font = `800 32px ${FONT}`; x.fillText(lab, bx+92, by+64);
+    const r = fit(txt || '(아직 비어 있음)', bw-48, 5, 32, 22, 500); draw(r, bx+24, by+110 + r.s*0.3, txt ? '#1d2a24' : '#b9b19a');
+  });
+  // 화살표
+  x.fillStyle = '#9aa69a'; x.font = `800 40px ${FONT}`; x.textAlign = 'center';
+  x.fillText('→', gx+bw+20, gy+bh/2+14); x.fillText('↓', gx+bw*2+40-bw/2, gy+bh+32); x.fillText('←', gx+bw+20, gy+bh*1.5+54); x.fillText('↑', gx+bw/2, gy+bh+32);
+  x.textAlign = 'left';
+  y = gy + bh*2 + 40 + 50;
+  // 원칙
+  x.fillStyle = '#2E6A3A'; x.font = `800 32px ${FONT}`; x.fillText('나의 실수관리 원칙', PAD, y); y += 16;
+  const rules = p.rules.length ? p.rules : [['','(아직 비어 있음)']];
+  for(const [n, t] of rules){
+    const r = fit((n ? n + '  ' : '') + t, W-PAD*2-20, 2, 32, 24, 600); y += r.s*1.2; draw(r, PAD+10, y, '#1d2a24'); y += (r.ls.length-1)*r.s*1.3 + 6;
+  }
+  y += 34;
+  // 30일 띠
+  const bandH = Math.max(220, H - 150 - y);
+  x.fillStyle = '#1F3A2E'; x.beginPath(); x.roundRect ? x.roundRect(PAD, y, W-PAD*2, bandH, 24) : x.rect(PAD, y, W-PAD*2, bandH); x.fill();
+  x.fillStyle = '#cfe3c8'; x.font = `800 30px ${FONT}`; x.fillText('앞으로 30일 — 관찰 · 점검 · 수정', PAD+30, y+56);
+  let yy = y + 100;
+  const line = (lab, t)=>{ if(!t) return; const r = fit(lab + '  ' + t, W-PAD*2-60, 2, 30, 22, 500); draw(r, PAD+30, yy, '#fff'); yy += r.ls.length*r.s*1.3 + 12; };
+  line('언제 ·', p.when); line('할 행동 ·', p.act); line('막히면 ·', p.retry);
+  x.fillStyle = '#9a8f6a'; x.font = `500 24px ${FONT}`; x.fillText(`SEED · ${p.name}  ·  실수를 하지 않는 사람이 아니라, 다루는 순서를 가진 사람`, PAD, H-50);
+  return cv;
+}
+function showModel(cv, empty, stage){
+  const url = cv.toDataURL('image/png');
+  const fin = stage === 'final';
+  const fname = `SEED_나의SEED모형_${new Date().toISOString().slice(0,10)}_${fin ? '최종' : '초안'}`;
+  const ov = h(`<div style="position:fixed;inset:0;background:rgba(20,28,24,.72);z-index:9999;overflow:auto;padding:18px 12px">
+    <div style="max-width:430px;margin:0 auto;background:#fff;border-radius:16px;padding:16px">
+      <div class="row"><b>나의 SEED 모형 · ${fin ? '최종' : '초안'}</b><span class="spacer"></span><button class="btn sm ghost" data-x>닫기 ✕</button></div>
+      ${empty.length ? `<div class="note warn" style="margin:10px 0">아직 비어 있는 곳: <b>${empty.map(esc).join(' · ')}</b><br>채워서 저장한 뒤 다시 만들면 모형에도 들어갑니다.</div>` : ''}
+      <img src="${url}" alt="나의 SEED 모형" style="width:100%;border-radius:12px;border:1px solid #ddd;margin:8px 0">
+      <div style="display:grid;gap:8px">
+        <button class="btn p wide" data-share>휴대폰에 저장 · 보내기</button>
+        <a class="btn wide" data-png href="${url}" download="${fname}.png">이미지(PNG)로 내려받기</a>
+      </div>
+      ${fin ? '' : `<div class="note" style="margin:10px 0 0"><b>이제 짝과 확인하세요</b> — 짝은 묻기만 합니다.<ol style="margin:6px 0 0 18px;padding:0">${PAIR_Q.map(q=>`<li><b>${q[0]}</b> — ${q[1]}</li>`).join('')}</ol></div>`}
+      <p class="hint">저장이 안 되면 위 그림을 <b>길게 눌러 ‘이미지 저장’</b>하세요. 카카오톡 안에서 열었다면 <b>‘다른 브라우저로 열기’</b> 뒤 다시 해 보세요.</p>
+    </div></div>`);
+  document.body.appendChild(ov);
+  $('[data-x]', ov).onclick = ()=> ov.remove();
+  ov.addEventListener('click', e=>{ if(e.target === ov) ov.remove(); });
+  $('[data-share]', ov).onclick = async ()=>{
+    try{
+      const blob = await new Promise(r=>cv.toBlob(r, 'image/png'));
+      const file = new File([blob], fname + '.png', { type:'image/png' });
+      if(navigator.canShare && navigator.canShare({ files:[file] })) await navigator.share({ files:[file], title:'나의 SEED 모형' });
+      else $('[data-png]', ov).click();
+    }catch(e){ if(e && e.name !== 'AbortError') $('[data-png]', ov).click(); }
+  };
 }
